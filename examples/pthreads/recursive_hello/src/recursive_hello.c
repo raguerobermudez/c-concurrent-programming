@@ -10,7 +10,7 @@ int main(void)
 {
     // create_thread(greet)
     pthread_t thread;
-    size_t dato = 6;
+    size_t dato = 2;
     int error = pthread_create(&thread, /*thread atributes*/ NULL, greet, /*function arguments*/ (void*)dato);
     if (error == EXIT_SUCCESS)
     {
@@ -36,7 +36,7 @@ void *greet(void *data)
         data_1--;
         greet((void*)data_1);
     }else if(data_1 == 0){
-        printf("Adios de #%zu",data_1);
+        printf("Adios de #%zu\n",data_1);
     }
     return NULL;
 } // end procedure
