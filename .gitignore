@@ -1,3 +1,5 @@
 /ejemplos/pthreads/recursive_hello/src/hello
 /ejemplos/pthreads/recursive_hello/build
 /ejemplos/pthreads/recursive_hello/bin
+*/bin
+*/build
