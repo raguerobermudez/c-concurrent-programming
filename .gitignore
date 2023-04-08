@@ -1,5 +1,6 @@
-build/*
-bin/*
+*build/
+bin/
 .directory
-.vscode/*
-vgcore.*
+.vscode/
+vgcore.
+
