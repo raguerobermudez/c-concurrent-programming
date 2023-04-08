@@ -7,9 +7,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#define MAX_SHOT_DISTANCE 25.0
-// Max shot put distance is 25 meters
-
 typedef struct {
   size_t pinata_max_hits;
   size_t* pinata_saved_hits;
@@ -64,7 +61,8 @@ int main(int argc, char* argv[]) {
 
   pthread_mutex_init(&pinata_party.pinata_can_take_hit, NULL);
   // Only one thread can hit the pinata at the same time
-  thread_turn_info* thread_info = malloc(sizeof(thread_turn_info)*NUMBER_THREADS);
+  thread_turn_info* thread_info =
+      malloc(sizeof(thread_turn_info) * NUMBER_THREADS);
   for (size_t i = 0; i < NUMBER_THREADS; i++) {
     thread_info[i].thread_id = i;
     thread_info[i].pinata = &pinata_party;
@@ -117,6 +115,5 @@ void* hit_pinata(void* t_info) {
     }
     pthread_mutex_unlock(&(pinata_party->pinata_can_take_hit));
   }
-
   return NULL;
 }
