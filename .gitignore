@@ -3,4 +3,5 @@ bin/
 .directory
 .vscode/
 vgcore.
+doc/
 
