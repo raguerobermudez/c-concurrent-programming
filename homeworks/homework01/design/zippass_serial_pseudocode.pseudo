@@ -1,0 +1,111 @@
+//zippass_serial_pseudocode_solution
+
+procedure main (num_args, argument[]):
+    if(num_args = 2) then
+        declare file_txt := read_txt_file(argument[1])
+        // Read a .txt file
+    
+    for( num_of_zip_file 0 to num_zip_files) do
+        // For each ZIP file in the list:
+        
+        declare zip_file :=
+         open_zip(zip_files_directions[num_of_zip_file])
+        // Open the ZIP file.
+
+        declare generated_password[MAX_PASSWORD_LENGHT]. 
+        declare is_password found = 0;
+        // For each ZIP File:
+        while( password_lenght 0 is less than MAX_PASSWORD_LENGHT
+            and is_password_found = 0
+            ) do
+            //  For each password length from 1 to "MAX_PASSWORD_LENGHT"
+            is_password_found:=
+            generate_zip_passwords(password_lenght,
+                 ALPHABET, generated_password, zip file)
+            // Generate all possible combinations of characters of
+            // the current password length using the allowed alphabet.
+            
+            if(is_password_found = 1) do 
+                print("FILE_ZIP + generated_password")
+        end if
+          
+        end while
+
+    // Continue to the next ZIP file.
+    //Close the ZIP file.
+    End main
+
+procedure read_txt_file:
+    file = open_file(argument[1])
+    if(file = NULL) then:
+        print ("The file could not be open")
+        return null
+    else
+     
+     // Read maximum password length from the .txt file
+    declare MAX_PASSWORD_LENGHT = file(read second line)
+    // Read the allowed alphabet from the .txt file
+    declare ALPHABET [MAX_PASSWORD_LENGHT]= file( read first line)
+    // "ALPHABET" will be the characters that can be contained
+    // in a password of an protected ZIP file
+    
+    skip blank line from txt file
+
+    / Read the list of ZIP files from .txt file.
+    // and make an array with those list of ZIP files
+ 
+    declare zip_files_directions[]
+    declare num_zip_files := 0
+    while(is_not_end_of_line) do
+        zip_files_direccionts = file(read_zip_direction)      
+        num_zip_files := +1;
+    end while
+    file = close file.
+    end if
+
+procedure generate_zip_passwords(password_lenght, ALPHABET, generated_password, zip_file):
+// Generate all possible combinations of characters of
+// the current password length using the allowed alphabet.
+// Make an array of character and store all posible combinations
+// charactes made in step 5.2.2 (previous step)
+
+    declare num_position :=0
+    declare password_generated[password_lenght];
+    declare password_temp[]
+    declare is_password_found
+    // 
+    while(num_position < password_lenght) do 
+        for( alphabet_char :=0 to alphabet_last_character) do 
+        password_temp[pos] = ALPHABET[i]    
+       is_password_found := test_zip_password(password_temp),
+            zip_files_directions[num_of_zip_file])
+       // test if the combination of characters
+       // can access a password-protected ZIP file
+       //  by using it as the password
+       if(is_password_found) do 
+        generated_password = password
+        exit while
+         // Stop searching for passwords for the current ZIP file
+       end do
+     
+    return is_password_found    
+    end while
+
+
+procedure test_zip_password(password, zip_file):
+// test if the combination of characters
+// can access a password-protected ZIP file
+// by using it as the password
+
+zip_file_open = zip_open(zip_file, password)
+
+if(zip_file_open) do
+    //  If the combination of characters in step 5.2.4.1
+    // can give access to a protected ZIP file:
+    print(zip_file_open + password)
+    // Print the name of the ZIP file and the found
+    // password to standard output.
+    return true
+else 
+    return true
+end if
