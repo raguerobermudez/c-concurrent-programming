@@ -25,20 +25,20 @@ The program's output will include the name of each ZIP file and the password fou
     - The fourth and subsequent lines correspond to a list of ZIP files that the password must be found for. Each line contains a file name and a path relative to the folder where its project is located.  
     - Example of a txt file:
 
-     >**0123456789**  
-     **5**
+     >0123456789  
+     5  
   
-     >**tests/zip_05/f01.zip**  
-     **tests/zip_05/f23.zip**  
-     **tests/zip_05/f09.zip**
+     > tests/zip_05/f01.zip  
+     tests/zip_05/f23.zip  
+     tests/zip_05/f09.zip  
 
 #### Program Output
 1. For each zip file, the program will search and show the password:
     - Example of program output:  
     >
-        **tests/zip_05/f01.zip 00112**  
-        **tests/zip_05/f23.zip**  
-        **tests/zip_05/f09.zip 9209**  
+        tests/zip_05/f01.zip 00112  
+        tests/zip_05/f23.zip  
+        tests/zip_05/f09.zip 9209  
 
 ### Implemented Functions:
 >   - TODO()
