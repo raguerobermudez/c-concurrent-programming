@@ -1,125 +1,103 @@
 // Copyright 2023 Randy Aguero Bermudez
 
+#include "zippass_serial.h"
+
+#include <inttypes.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 #include <zip.h>
-#include <stdint.h
-#include <inttypes.h>
-
-typedef struct {
-  size_t pinata_max_hits;
-  size_t* pinata_saved_hits;
-  size_t thread_broke_pinata_id;
-  pthread_mutex_t pinata_can_take_hit;
-} pinata;
-
-typedef struct {
-  size_t thread_id;
-  pinata* pinata;
-} thread_turn_info;
-
-void* hit_pinata(void* t_info);
 
 // procedure main:
 int main(int argc, char* argv[]) {
-
-  struct zip *zip_file;
-
-  // argc anumber of arguments
-  // argv array with arguments
-  if (argc != 3) {
-    fprintf(
-        stderr,
-        "Error, you must enter a number of threads, and max number of hits\n");
-    return 1;
+  uint32_t ERROR = 0;
+  /* if(num_args = 2) then
+    declare file_txt := read_txt_file(argument[1])
+  */
+  if (argc != 2) {
+    fprintf(stderr, "Error, you must include a .txt file as argument\n");
+    ERROR = 1;
+    return ERROR;
   }
-  const size_t NUMBER_THREADS = atoi(argv[1]);
-  if (NUMBER_THREADS == 0) {
-    fprintf(stderr, "Error, A positive number of thread must be entered\n");
-    return 1;
+  txt_data txt_file;
+  if (!read_txt_file(argv[1], &txt_file)) {
+    fprintf(stderr, "Error, Could not open the file");
+    ERROR = 2;
   }
 
-  const size_t MAX_HITS = atoi(argv[2]);
-  if (MAX_HITS < 1) {
-    fprintf(stderr,
-            "Error, A valid maximum number of hits must be entered, it must be "
-            "a positive integer\n");
-    return 1;
-  }
-  // Number of hits
-
-  pinata pinata_party;
-  pinata_party.pinata_max_hits = MAX_HITS;
-  pinata_party.thread_broke_pinata_id = 0;
-  pinata_party.pinata_saved_hits = calloc(NUMBER_THREADS, sizeof(size_t));
-
-  pthread_t threads[NUMBER_THREADS];
-  // threads generated
-
-  // Array with a counter of hits
-
-  int error_T1 = 0;
-  // Program error status
-
-  pthread_mutex_init(&pinata_party.pinata_can_take_hit, NULL);
-  // Only one thread can hit the pinata at the same time
-  thread_turn_info* thread_info =
-      malloc(sizeof(thread_turn_info) * NUMBER_THREADS);
-  for (size_t i = 0; i < NUMBER_THREADS; i++) {
-    thread_info[i].thread_id = i;
-    thread_info[i].pinata = &pinata_party;
-    error_T1 = pthread_create(&threads[i], /*thread atributes*/ NULL,
-                              (void*)hit_pinata,
-                              /*function arguments*/ (void*)&thread_info[i]);
-    if (error_T1 != EXIT_SUCCESS) {
-      fprintf(stderr, "Error: A thread failed to hit the pinata\n");
-      break;
-    }
-  }
-  for (size_t i = 0; i < NUMBER_THREADS; i++) {
-    pthread_join(threads[i], NULL);
-  }
-
-  for (size_t i = 0; i < NUMBER_THREADS; i++) {
-    if (pinata_party.thread_broke_pinata_id == i) {
-      printf("Thread %zu/%zu: %zu hits, I broke the pinata \n", i + 1,
-             NUMBER_THREADS, pinata_party.pinata_saved_hits[i]);
-    } else {
-      printf("Thread %zu/%zu: %zu hits\n", i + 1, NUMBER_THREADS,
-             pinata_party.pinata_saved_hits[i]);
-    }
-  }
-  free(thread_info);
-  free(pinata_party.pinata_saved_hits);
-
-  return 0;
+  return ERROR;
 }
 
-void* hit_pinata(void* t_info) {
-  thread_turn_info* thread_info = t_info;
-  size_t thread_id = thread_info->thread_id;
-  size_t* hit_thread_list = thread_info->pinata->pinata_saved_hits;
-  pinata* pinata_party = (thread_info->pinata);
-  bool pinata_is_not_broken = true;
+bool read_txt_file(char* file, txt_data* file_data) {
+  // procedure read_txt_file:
+  FILE* txt_file = malloc(sizeof(FILE));
+  // txt_file will be stored in dynamic memory
+  txt_file = fopen(file, "r");
+  // file = open_file(argument[1])
+  // "r" means "read" mode
 
-  while (pinata_is_not_broken) {
-    pthread_mutex_lock(&(pinata_party->pinata_can_take_hit));
-    if (pinata_party->pinata_max_hits > 0) {
-      pinata_party->pinata_max_hits--;
-      hit_thread_list[thread_id]++;
+  if (!txt_file) {
+    fprintf(stderr, "The file could not be open");
 
-      if (pinata_party->pinata_max_hits == 0) {
-        pinata_party->thread_broke_pinata_id = thread_id;
-        pinata_is_not_broken = false;
-      }
-    } else {
-      pinata_is_not_broken = false;
-    }
-    pthread_mutex_unlock(&(pinata_party->pinata_can_take_hit));
+    return false;
   }
-  return NULL;
+  file_data->file = txt_file;
+  char* char_alphabet = calloc(sizeof(char), MAX_LINE_LENGHT);
+  fgets(char_alphabet, MAX_LINE_LENGHT, txt_file);
+
+  if (!char_alphabet) {
+    fprintf(stderr, "Error, Could not read the alphabet");
+    free(char_alphabet);
+    return false;
+  }
+  file_data->alphabet = char_alphabet;
+  // "ALPHABET" will be the characters that can be contained
+  // in a password of an protected ZIP file
+
+  // Read maximum password length from the .txt file
+  char char_max_password_length[MAX_LINE_LENGHT];
+  fgets(char_max_password_length, MAX_LINE_LENGHT, txt_file);
+  // declare MAX_PASSWORD_LENGHT = file(read second line)
+  if (*char_max_password_length) {
+    fprintf(stderr, "Error, Could not read the maximum password length");
+    return false;
+  }
+
+  uint64_t* max_pass_length = malloc(sizeof(uint64_t));
+  if (!(*max_pass_length = (uint64_t)atoi(char_max_password_length))) {
+    fprintf(stderr, "%s is not a valid integer number",
+            char_max_password_length);
+    return false;
+  }
+
+  char blank_line[MAX_LINE_LENGHT];
+  fgets(blank_line, MAX_LINE_LENGHT, txt_file);
+  // skip blank line from txt file
+
+  char** zip_directions = calloc(MAX_NUMBER_ZIP_FILES, sizeof(char*));
+  char zip_dir[MAX_LINE_LENGHT];
+
+  file_data->num_of_zip_files = malloc(sizeof(uint64_t));
+  file_data->num_of_zip_files = 0;
+
+  while (fgets(zip_dir, MAX_LINE_LENGHT, txt_file)) {
+    // while (is_not_end_of_line) do zip_files_direccionts =
+    // file(read_zip_direction)
+    // num_zip_files : = +1;
+
+    printf("Zip file %s\n", zip_dir);
+    zip_directions[*file_data->num_of_zip_files] = zip_dir;
+    file_data->num_of_zip_files++;
+  }
+  file_data->zip_files_directions = zip_directions;
+  fclose(txt_file);
+  // file = close(file)
+  if (file_data->num_of_zip_files == 0) {
+    return false;
+  }
+  return true;
 }

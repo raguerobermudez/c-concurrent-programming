@@ -100,12 +100,12 @@ procedure test_zip_password(password, zip_file):
 zip_file_open = zip_open(zip_file, password)
 
 if(zip_file_open) do
-    //  If the combination of characters in step 5.2.4.1
+    //  If the combination of characters
     // can give access to a protected ZIP file:
     print(zip_file_open + password)
     // Print the name of the ZIP file and the found
     // password to standard output.
     return true
 else 
-    return true
+    return false
 end if
