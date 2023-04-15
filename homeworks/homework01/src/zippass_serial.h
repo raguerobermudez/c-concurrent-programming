@@ -20,6 +20,25 @@
 #define MAX_LINE_LENGHT 2048
 #define MAX_NUMBER_ZIP_FILES 100
 
+enum error_code {ZIP_PROCESSED_SUCESSFULLY, ZIP_DOES_NOT_EXIST,
+     ZIP_HAS_NOT_ANY_PASSWORD, ZIP_IS_EMPTY, OPEN_FILE_UNSUSSESFULLY};
+     
+
+  // ZIP_PROCESSED_SUCESSFULLY
+  // ZIP_DOES_NOT_EXIST
+  // ZIP_HAS_NOT_ANY_PASSWORD
+  // ZIP_IS_EMPTY
+  // OPEN_FILE_UNSUSSESFULLY (Invalid password)
+
+typedef struct password_test_codes{
+  bool is_valid_password;
+  enum error_code error_code;
+    // 0 = The zip file does not exist
+    // 1 = the zip file has not any password
+    // 2 = The zip file is empty
+    
+}test_code;
+
 typedef struct txt_file_data {
   FILE* file;
   char* alphabet;
@@ -59,4 +78,4 @@ bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
  * @return true if a password is correct
  * @return false if the password in incorrect
  */
-bool test_zip_password(const char* password, const char* zip_dir);
+test_code* test_zip_password(const char* password, const char* zip_dir);
