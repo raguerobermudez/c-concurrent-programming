@@ -29,6 +29,18 @@ int main(int argc, char* argv[]) {
     ERROR = 2;
   }
 
+  /*
+  typedef struct txt_file_data {
+  FILE* file;
+  char* alphabet;
+  uint64_t MAX_PASSWORD_LENGTH;
+  uint64_t* num_of_zip_files;
+  char** zip_files_directions;
+} txt_data;
+*/
+  // bool is_password_found =
+  // generate_zip_password(txt_file.MAX_PASSWORD_LENGTH,txt_file.alphabet,)
+
   return ERROR;
 }
 
@@ -41,7 +53,7 @@ bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
   uint64_t num_position_password = 0;
   // uint64_t alfabhet_size = strlen(ALPHABET);
   bool is_password_found = false;
-  char* password_temp = calloc((*password_lenght+1), sizeof(char));
+  char* password_temp = calloc((*password_lenght + 1), sizeof(char));
   password_temp[*password_lenght] = '\0';
   // char* password_generated[*password_lenght];
   while (num_position_password < *password_lenght && !is_password_found) {
@@ -148,6 +160,7 @@ bool read_txt_file(char* file, txt_data* file_data) {
     free(char_alphabet);
     return false;
   }
+  printf("%s\n", char_alphabet);
   file_data->alphabet = char_alphabet;
   // "ALPHABET" will be the characters that can be contained
   // in a password of an protected ZIP file
@@ -156,7 +169,8 @@ bool read_txt_file(char* file, txt_data* file_data) {
   char char_max_password_length[MAX_LINE_LENGHT];
   fgets(char_max_password_length, MAX_LINE_LENGHT, txt_file);
   // declare MAX_PASSWORD_LENGHT = file(read second line)
-  if (*char_max_password_length) {
+  printf("%s\n", char_max_password_length);
+  if (!(*char_max_password_length)) {
     fprintf(stderr, "Error, Could not read the maximum password length\n");
     return false;
   }
@@ -175,23 +189,30 @@ bool read_txt_file(char* file, txt_data* file_data) {
   char** zip_directions = calloc(MAX_NUMBER_ZIP_FILES, sizeof(char*));
   char zip_dir[MAX_LINE_LENGHT];
 
-  file_data->num_of_zip_files = malloc(sizeof(uint64_t));
-  file_data->num_of_zip_files = 0;
+  uint64_t* num_files = malloc(sizeof(uint64_t));
+  *num_files = 0;
 
   while (fgets(zip_dir, MAX_LINE_LENGHT, txt_file)) {
     // while (is_not_end_of_line) do zip_files_direccionts =
     // file(read_zip_direction)
     // num_zip_files : = +1;
 
-    printf("Zip file %s\n", zip_dir);
-    zip_directions[*file_data->num_of_zip_files] = zip_dir;
-    file_data->num_of_zip_files++;
+    zip_directions[*num_files] = malloc(strlen(zip_dir)+1);
+    strcpy(zip_directions[*num_files], zip_dir);
+     printf("%s\n", zip_directions[*num_files]);
+    (*num_files)++;
   }
+  
   file_data->zip_files_directions = zip_directions;
   fclose(txt_file);
   // file = close(file)
-  if (file_data->num_of_zip_files == 0) {
+  if (num_files == 0) {
     return false;
+    free(num_files);
+    free(file_data);
+    free(zip_directions);
   }
+  file_data->num_of_zip_files = num_files;
+ 
   return true;
 }
