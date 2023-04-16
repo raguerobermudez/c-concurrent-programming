@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <zip.h>
@@ -31,7 +32,31 @@ int main(int argc, char* argv[]) {
   return ERROR;
 }
 
-test_code* test_password_zip_file(char* password, char* zip_file_dir) {
+bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
+                           const char* zip_dir) {
+  // declare num_position :=0
+  // declare password_generated[password_lenght];
+  // declare password_temp[]
+  // declare is_password_found
+  uint64_t num_position_password = 0;
+  // uint64_t alfabhet_size = strlen(ALPHABET);
+  bool is_password_found = false;
+  char* password_temp = calloc((*password_lenght+1), sizeof(char));
+  password_temp[*password_lenght] = '\0';
+  // char* password_generated[*password_lenght];
+  while (num_position_password < *password_lenght && !is_password_found) {
+    uint64_t num_position_alphabet = 0;
+    while (num_position_alphabet < strlen(ALPHABET) && !is_password_found) {
+      password_temp[num_position_password] = (ALPHABET[num_position_alphabet]);
+      is_password_found = test_password_zip_file(password_temp, zip_dir);
+    }
+    num_position_password++;
+  }
+
+  return is_password_found;
+}
+
+bool test_password_zip_file(const char* password, const char* zip_file_dir) {
   // error_codes:
   // ZIP_PROCESSED_SUCESSFULLY
   // ZIP_DOES_NOT_EXIST
@@ -41,7 +66,7 @@ test_code* test_password_zip_file(char* password, char* zip_file_dir) {
 
   test_code* password_test_code;
   password_test_code = malloc(sizeof(test_code));
-  password_test_code->is_valid_password = false;
+  bool is_valid_password = false;
 
   printf("ZIP DIR: %s\n", zip_file_dir);
   printf("Password %s\n", password);
@@ -54,9 +79,6 @@ test_code* test_password_zip_file(char* password, char* zip_file_dir) {
     password_test_code->error_code = ZIP_DOES_NOT_EXIST;
     // return password_test_code;
   }
-  // test if the combination of characters
-  // can access a password-protected ZIP file
-  // by using it as the password
 
   // It will analyze if the zip is empty
   uint64_t num_files = zip_get_num_entries(zip_file_data, 0);
@@ -79,22 +101,29 @@ test_code* test_password_zip_file(char* password, char* zip_file_dir) {
       // This print that a fail has not valid data.
     }
 
+    // If the combination of characters
+    // can give access to a protected ZIP file:
+    // print(zip_file_open + password)
+    // Print the name of the ZIP file and the found
+    // password to standard output.
+
     struct zip_file* file = zip_fopen_index(zip_file_data, i, 0);
     if (file) {
       // The zip file is not encrypted
       printf("%s", zip_file_dir);
       password_test_code->error_code = ZIP_HAS_NOT_ANY_PASSWORD;
+      is_valid_password = true;
     } else {
       file = zip_fopen_index_encrypted(zip_file_data, i, 0, password);
       if (file) {
         printf("%s %s", zip_file_dir, password);
-        password_test_code->is_valid_password = true;
+        is_valid_password = true;
       } else {
         password_test_code->error_code = OPEN_FILE_UNSUSSESFULLY;
       }
     }
-    }
-  return password_test_code;
+  }
+  return is_valid_password;
 }
 
 bool read_txt_file(char* file, txt_data* file_data) {

@@ -78,4 +78,4 @@ bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
  * @return true if a password is correct
  * @return false if the password in incorrect
  */
-test_code* test_zip_password(const char* password, const char* zip_dir);
+bool test_password_zip_file(const char* password, const char* zip_file_dir);
