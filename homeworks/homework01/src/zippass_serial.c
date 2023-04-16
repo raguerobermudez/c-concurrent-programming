@@ -43,10 +43,7 @@ int main(int argc, char* argv[]) {
     generate_zip_password(&txt_file.MAX_PASSWORD_LENGTH, txt_file.alphabet,
                           txt_file.zip_files_directions[i]);
   }
-
-  printf("YOU HUUUUU");
-
-  return ERROR;
+    return ERROR;
 }
 
 uint64_t pow_u(uint64_t base, uint64_t exp) {
@@ -66,8 +63,6 @@ bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
   //  declare password_generated[password_lenght];
   //  declare password_temp[]
   //  declare is_password_found
-  printf("Alphabet %s\n", ALPHABET);
-  printf("Lenght %" PRIu64 " \n", *password_lenght);
 
   uint64_t pass_lenght = 0;
   bool is_password_found = false;
@@ -105,8 +100,6 @@ bool test_password_zip_file(const char* password, const char* zip_file_dir) {
   password_test_code = malloc(sizeof(test_code));
   bool is_valid_password = false;
 
-  printf("|%s|\n", zip_file_dir);
-  printf("Password %s\n", password);
   struct zip* zip_file_data = zip_open(zip_file_dir, 0, NULL);
   // zip_open(zip directory, flags, error variable)
 
@@ -119,6 +112,7 @@ bool test_password_zip_file(const char* password, const char* zip_file_dir) {
 
   // It will analyze if the zip is empty
   uint64_t num_files = zip_get_num_entries(zip_file_data, 0);
+  
   // zip_get_num_files — is obsolete,
   if (!num_files) {
     // The zip file is empty
@@ -127,11 +121,9 @@ bool test_password_zip_file(const char* password, const char* zip_file_dir) {
   }
   // For each file in the zip, the password, will be used to read each
   // file in the zip
-  printf("LLega aqui\n");
   for (uint64_t i = 0; i < num_files; i++) {
     struct zip_stat file_stat;
-    zip_stat_init(&file_stat);
-    if (!zip_stat_index(zip_file_data, i, 0, &file_stat)) {
+    if (zip_stat_index(zip_file_data, i, 0, &file_stat) != 0) {
       fprintf(stderr,
               "Error the file %s could no be read"
               " it has invalid data\n",
@@ -154,14 +146,17 @@ bool test_password_zip_file(const char* password, const char* zip_file_dir) {
     } else {
       file = zip_fopen_index_encrypted(zip_file_data, i, 0, password);
       if (file) {
-        printf("%s %s", zip_file_dir, password);
+        printf("%s %s\n", zip_file_dir, password);
+       
         is_valid_password = true;
       } else {
         password_test_code->error_code = OPEN_FILE_UNSUSSESFULLY;
       }
     }
   }
+  zip_close(zip_file_data);
   return is_valid_password;
+  
 }
 
 bool read_txt_file(char* file, txt_data* file_data) {
@@ -172,9 +167,8 @@ bool read_txt_file(char* file, txt_data* file_data) {
   // file = open_file(argument[1])
   // "r" means "read" mode
 
-  if (!txt_file) {
+  if (!(txt_file)) {
     fprintf(stderr, "The file could not be open\n");
-
     return false;
   }
   file_data->file = txt_file;
@@ -227,7 +221,6 @@ bool read_txt_file(char* file, txt_data* file_data) {
     zip_directions[*num_files] = malloc(strlen(zip_dir) + 1);
     zip_dir[strcspn(zip_dir, "\n")] = '\0';
     strcpy(zip_directions[*num_files], zip_dir);
-    printf("%s\n", zip_directions[*num_files]);
     (*num_files)++;
   }
 

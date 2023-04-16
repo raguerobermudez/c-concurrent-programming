@@ -47,6 +47,14 @@ typedef struct txt_file_data {
   char** zip_files_directions;
 } txt_data;
 
+
+/**
+ * @brief 
+ * 
+ * @param base 
+ * @param exp 
+ * @return uint64_t 
+ */
 uint64_t pow_u(uint64_t base, uint64_t exp);
 
 /**
