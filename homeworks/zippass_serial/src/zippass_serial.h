@@ -30,12 +30,6 @@ enum error_code {
   FAILED_ALLOCATE_MEMORY
 };
 
-// ZIP_PROCESSED_SUCESSFULLY
-// ZIP_DOES_NOT_EXIST
-// ZIP_HAS_NOT_ANY_PASSWORD
-// ZIP_IS_EMPTY
-// OPEN_FILE_UNSUSSESFULLY (Invalid password)
-
 typedef struct password_test_codes {
   char* password;
   enum error_code error_code;
@@ -78,7 +72,6 @@ bool read_txt_file(char* file, txt_data* file_data);
  */
 void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
                            const char* zip_dir);
-
 
 /**
  * @brief test_zip_password tries to open a file using a given password

@@ -41,12 +41,23 @@ The program's output will include the name of each ZIP file and the password fou
         tests/zip_05/f09.zip 9209  
 
 ### Implemented Functions:
->   - TODO()
+> - Password Generation
+> - Password Verification
+> - File Reading
+> - Error handling in zip files and txt files
+
 ### Functionalities not Implemented:
-> - TODO()
+> - UML diagrams were not created
+> - The program has memory leaks that have not been resolved.
+> - The program takes a long time to generate passwords.
 
 ### Program compilation
-> - TODO()
-
+> - Using a terminal, navigate to the project folder (../zippass_serial)".
+> - Use the command 'make' to compile the program".
 ### How to use it:
-> - TODO()
+> - Using a terminal, and within the project folder (../zippass_serial), type the command:
+"bin/zippass_serial" and add a file that you want to test, for example "tests/input001.txt". For example: bin/zippas_serial tests/input001.txt
+
+
+### Otros
+> -
