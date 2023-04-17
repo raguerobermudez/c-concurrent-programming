@@ -2,6 +2,6 @@
 bin/
 .directory
 .vscode/
-vgcore.
+vgcore.*
 doc/
 

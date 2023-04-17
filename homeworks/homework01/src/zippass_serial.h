@@ -20,24 +20,26 @@
 #define MAX_LINE_LENGHT 2048
 #define MAX_NUMBER_ZIP_FILES 100
 
-enum error_code {ZIP_PROCESSED_SUCESSFULLY, ZIP_DOES_NOT_EXIST,
-     ZIP_HAS_NOT_ANY_PASSWORD, ZIP_IS_EMPTY, OPEN_FILE_UNSUSSESFULLY};
-     
+enum error_code {
+  ZIP_PROCESSED_SUCESSFULLY,
+  ZIP_FILE_NOT_READ,
+  ZIP_DOES_NOT_EXIST,
+  ZIP_HAS_NOT_ANY_PASSWORD,
+  ZIP_IS_EMPTY,
+  INVALID_FILE_DATA,
+  FAILED_ALLOCATE_MEMORY
+};
 
-  // ZIP_PROCESSED_SUCESSFULLY
-  // ZIP_DOES_NOT_EXIST
-  // ZIP_HAS_NOT_ANY_PASSWORD
-  // ZIP_IS_EMPTY
-  // OPEN_FILE_UNSUSSESFULLY (Invalid password)
+// ZIP_PROCESSED_SUCESSFULLY
+// ZIP_DOES_NOT_EXIST
+// ZIP_HAS_NOT_ANY_PASSWORD
+// ZIP_IS_EMPTY
+// OPEN_FILE_UNSUSSESFULLY (Invalid password)
 
-typedef struct password_test_codes{
-  bool is_valid_password;
+typedef struct password_test_codes {
+  char* password;
   enum error_code error_code;
-    // 0 = The zip file does not exist
-    // 1 = the zip file has not any password
-    // 2 = The zip file is empty
-    
-}test_code;
+} test_code;
 
 typedef struct txt_file_data {
   FILE* file;
@@ -47,15 +49,25 @@ typedef struct txt_file_data {
   char** zip_files_directions;
 } txt_data;
 
-
 /**
- * @brief 
- * 
- * @param base 
- * @param exp 
- * @return uint64_t 
+ * @brief
+ *
+ * @param base
+ * @param exp
+ * @return uint64_t
  */
 uint64_t pow_u(uint64_t base, uint64_t exp);
+
+/*
+ * @brief 
+ * 
+ * @param file 
+ * @param file_data 
+ * @return true 
+ * @return false 
+ */
+bool read_txt_file(char* file, txt_data* file_data);
+
 
 /**
  * @brief read_txt_file processes txt file
@@ -65,7 +77,6 @@ uint64_t pow_u(uint64_t base, uint64_t exp);
  * @return true If the txt file can be sucesfully read
  * @return false If the txt file is not a valid txt file
  */
-bool read_txt_file(char* file, txt_data* file_data);
 
 /**
  * @brief generate_zip_password uses a force-brute algorithm to find the correct
@@ -77,7 +88,7 @@ bool read_txt_file(char* file, txt_data* file_data);
  * @return true if a password has been found
  * @return false if a password has not been found
  */
-bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
+void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
                            const char* zip_dir);
 
 /**
@@ -88,4 +99,4 @@ bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
  * @return true if a password is correct
  * @return false if the password in incorrect
  */
-bool test_password_zip_file(const char* password, const char* zip_file_dir);
+test_code* test_password_zip_file(char* password, const char* zip_file_dir);

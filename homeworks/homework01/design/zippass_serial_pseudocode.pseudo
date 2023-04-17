@@ -67,7 +67,6 @@ procedure generate_zip_passwords(password_lenght, ALPHABET, generated_password, 
 // Generate all possible combinations of characters of
 // the current password length using the allowed alphabet.
 // Make an array of character and store all posible combinations
-// charactes made in step 5.2.2 (previous step)
 
     declare num_position :=0
     declare password_generated[password_lenght];

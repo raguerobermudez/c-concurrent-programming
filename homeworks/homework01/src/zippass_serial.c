@@ -28,22 +28,16 @@ int main(int argc, char* argv[]) {
   if (!read_txt_file(argv[1], &txt_file)) {
     ERROR = 2;
   }
-
-  /*
-  typedef struct txt_file_data {
-  FILE* file;
-  char* alphabet;
-  uint64_t MAX_PASSWORD_LENGTH;
-  uint64_t* num_of_zip_files;
-  char** zip_files_directions;
-} txt_data;
-*/
-
   for (uint64_t i = 0; i < *txt_file.num_of_zip_files; i++) {
     generate_zip_password(&txt_file.MAX_PASSWORD_LENGTH, txt_file.alphabet,
                           txt_file.zip_files_directions[i]);
   }
-    return ERROR;
+  free(txt_file.zip_files_directions);
+  free(txt_file.num_of_zip_files);
+  free(txt_file.alphabet);
+  fclose(txt_file.file);
+
+  return ERROR;
 }
 
 uint64_t pow_u(uint64_t base, uint64_t exp) {
@@ -56,71 +50,94 @@ uint64_t pow_u(uint64_t base, uint64_t exp) {
   return result;
 }
 
-bool generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
+void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
                            const char* zip_dir) {
-  // printf("LLega aqui");
   //  declare num_position :=0
   //  declare password_generated[password_lenght];
   //  declare password_temp[]
   //  declare is_password_found
 
   uint64_t pass_lenght = 0;
-  bool is_password_found = false;
+  bool generate_more_password = true;
+  test_code* password_test = NULL;
+  char* password = 0;
 
   // Password generation was taken from
   // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
-  while (pass_lenght <= *password_lenght && !is_password_found) {
-    char* password_gen = calloc(pass_lenght, sizeof(char));
+  while (pass_lenght <= *password_lenght && generate_more_password) {
+    char* password_gen = calloc(pass_lenght + 1, sizeof(char));
     uint64_t total_posible_combination = pow_u(strlen(ALPHABET), pass_lenght);
     uint64_t alphabet_index = 0;
-    while (alphabet_index < total_posible_combination && !is_password_found) {
+    while (alphabet_index < total_posible_combination &&
+           generate_more_password) {
       u_int64_t n = alphabet_index;
       for (uint64_t k = 0; k < pass_lenght; k++) {
         password_gen[pass_lenght - k - 1] = ALPHABET[n % strlen(ALPHABET)];
         n /= strlen(ALPHABET);
       }
       alphabet_index++;
-      is_password_found = test_password_zip_file(password_gen, zip_dir);
+
+      password_test = test_password_zip_file(password_gen, zip_dir);
+      if (password_test->error_code == ZIP_DOES_NOT_EXIST) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == ZIP_IS_EMPTY) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == INVALID_FILE_DATA) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == FAILED_ALLOCATE_MEMORY) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == ZIP_PROCESSED_SUCESSFULLY) {
+        password = password_gen;
+        generate_more_password = false;
+        ;
+        printf("%s %s\n", zip_dir, password);
+        break;
+      }
     }
     pass_lenght++;
   }
 
-  return is_password_found;
+  if (password_test->error_code != ZIP_PROCESSED_SUCESSFULLY) {
+    printf("%s\n", zip_dir);
+  }
+  free(password_test);
 }
 
-bool test_password_zip_file(const char* password, const char* zip_file_dir) {
-  // error_codes:
-  // ZIP_PROCESSED_SUCESSFULLY
-  // ZIP_DOES_NOT_EXIST
-  // ZIP_HAS_NOT_ANY_PASSWORD
-  // ZIP_IS_EMPTY
-  // OPEN_FILE_UNSUSSESFULLY (Invalid password)
-
+test_code* test_password_zip_file(char* password, const char* zip_file_dir) {
   test_code* password_test_code;
   password_test_code = malloc(sizeof(test_code));
-  bool is_valid_password = false;
 
   struct zip* zip_file_data = zip_open(zip_file_dir, 0, NULL);
   // zip_open(zip directory, flags, error variable)
 
   if (!zip_file_data) {
-    // if rhe zip file does not exist:
-    fprintf(stderr, "Error, the zip file does not exist\n");
+    fprintf(stderr, "Error, the zip file %s does not exist\n", zip_file_dir);
     password_test_code->error_code = ZIP_DOES_NOT_EXIST;
-    return false;
+    return password_test_code;
   }
 
   // It will analyze if the zip is empty
   uint64_t num_files = zip_get_num_entries(zip_file_data, 0);
-  
-  // zip_get_num_files — is obsolete,
+
+  // zip_get_num_files — is obsolete
   if (!num_files) {
     // The zip file is empty
+    fprintf(stderr, "Error, the zip file %s does not have files\n",
+            zip_file_dir);
     password_test_code->error_code = ZIP_IS_EMPTY;
-    // return password_test_code;
+    zip_close(zip_file_data);
+    return password_test_code;
   }
-  // For each file in the zip, the password, will be used to read each
-  // file in the zip
+  // For each file in the zip, the p  zip_fclose(file);assword, will be used to
+  // read each file in the zip
   for (uint64_t i = 0; i < num_files; i++) {
     struct zip_stat file_stat;
     if (zip_stat_index(zip_file_data, i, 0, &file_stat) != 0) {
@@ -128,35 +145,42 @@ bool test_password_zip_file(const char* password, const char* zip_file_dir) {
               "Error the file %s could no be read"
               " it has invalid data\n",
               zip_get_name(zip_file_data, i, 0));
+      password_test_code->error_code = INVALID_FILE_DATA;
+      zip_close(zip_file_data);
+      return password_test_code;
       // This print that a fail has not valid data.
     }
-
-    // If the combination of characters
-    // can give access to a protected ZIP file:
-    // print(zip_file_open + password)
-    // Print the name of the ZIP file and the found
-    // password to standard output.
-
-    struct zip_file* file = zip_fopen_index(zip_file_data, i, 0);
+    struct zip_file* file =
+        zip_fopen_index_encrypted(zip_file_data, i, 0, password);
     if (file) {
-      // The zip file is not encrypted
-      printf("%s", zip_file_dir);
-      password_test_code->error_code = ZIP_HAS_NOT_ANY_PASSWORD;
-      is_valid_password = true;
-    } else {
-      file = zip_fopen_index_encrypted(zip_file_data, i, 0, password);
-      if (file) {
-        printf("%s %s\n", zip_file_dir, password);
-       
-        is_valid_password = true;
-      } else {
-        password_test_code->error_code = OPEN_FILE_UNSUSSESFULLY;
+      // If the combination of characters
+      // can give access to a protected ZIP file:
+      char* file_content = malloc(file_stat.size);
+      if (!file_content) {
+        fprintf(stderr, "Error: couldn't allocate memory for the file %s",
+                file_stat.name);
+        password_test_code->error_code = FAILED_ALLOCATE_MEMORY;
+
+        zip_close(zip_file_data);
+        return password_test_code;
       }
+      if (zip_fread(file, file_content, file_stat.size) > 0) {
+        char* file_characters = "CI0117-23a";
+        if (strcmp(file_characters, file_content) == 0) {
+          password_test_code->error_code = ZIP_PROCESSED_SUCESSFULLY;
+
+          zip_close(zip_file_data);
+
+          return password_test_code;
+        }
+        zip_fclose(file);
+      }
+      free(file_content);
     }
+    zip_close(zip_file_data);
   }
-  zip_close(zip_file_data);
-  return is_valid_password;
-  
+  password_test_code->error_code = ZIP_FILE_NOT_READ;
+  return password_test_code;
 }
 
 bool read_txt_file(char* file, txt_data* file_data) {
@@ -178,6 +202,7 @@ bool read_txt_file(char* file, txt_data* file_data) {
   if (!char_alphabet) {
     fprintf(stderr, "Error, Could not read the alphabet\n");
     free(char_alphabet);
+    fclose(txt_file);
     return false;
   }
   char_alphabet[strcspn(char_alphabet, "\n")] = '\0';
@@ -193,6 +218,7 @@ bool read_txt_file(char* file, txt_data* file_data) {
 
   if (!(*char_max_password_length)) {
     fprintf(stderr, "Error, Could not read the maximum password length\n");
+    fclose(txt_file);
     return false;
   }
 
@@ -200,6 +226,7 @@ bool read_txt_file(char* file, txt_data* file_data) {
   if (!(*max_pass_length = (uint64_t)atoi(char_max_password_length))) {
     fprintf(stderr, "%s is not a valid integer number\n",
             char_max_password_length);
+    fclose(txt_file);
     return false;
   }
   file_data->MAX_PASSWORD_LENGTH = *max_pass_length;
@@ -225,15 +252,16 @@ bool read_txt_file(char* file, txt_data* file_data) {
   }
 
   file_data->zip_files_directions = zip_directions;
-  fclose(txt_file);
+
   // file = close(file)
   if (num_files == 0) {
-    return false;
     free(num_files);
     free(file_data);
     free(zip_directions);
+    fclose(txt_file);
+    return false;
   }
   file_data->num_of_zip_files = num_files;
-
+  fclose(txt_file);
   return true;
 }
