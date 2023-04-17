@@ -52,22 +52,11 @@ typedef struct txt_file_data {
 /**
  * @brief
  *
- * @param base
- * @param exp
- * @return uint64_t
+ * @param base Base of a power
+ * @param exp Exponent of a power
+ * @return uint64_t Return the result of the power
  */
 uint64_t pow_u(uint64_t base, uint64_t exp);
-
-/*
- * @brief 
- * 
- * @param file 
- * @param file_data 
- * @return true 
- * @return false 
- */
-bool read_txt_file(char* file, txt_data* file_data);
-
 
 /**
  * @brief read_txt_file processes txt file
@@ -77,6 +66,7 @@ bool read_txt_file(char* file, txt_data* file_data);
  * @return true If the txt file can be sucesfully read
  * @return false If the txt file is not a valid txt file
  */
+bool read_txt_file(char* file, txt_data* file_data);
 
 /**
  * @brief generate_zip_password uses a force-brute algorithm to find the correct
@@ -85,11 +75,10 @@ bool read_txt_file(char* file, txt_data* file_data);
  * @param password_lenght The maximum posible length of a password
  * @param ALPHABET Posible characters that can be used in a password
  * @param zip_dir The directory of the zip file to be opened
- * @return true if a password has been found
- * @return false if a password has not been found
  */
 void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
                            const char* zip_dir);
+
 
 /**
  * @brief test_zip_password tries to open a file using a given password

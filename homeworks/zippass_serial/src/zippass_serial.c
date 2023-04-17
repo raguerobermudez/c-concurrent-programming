@@ -97,7 +97,6 @@ void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
       if (password_test->error_code == ZIP_PROCESSED_SUCESSFULLY) {
         password = password_gen;
         generate_more_password = false;
-        ;
         printf("%s %s\n", zip_dir, password);
         break;
       }
@@ -127,7 +126,6 @@ test_code* test_password_zip_file(char* password, const char* zip_file_dir) {
   // It will analyze if the zip is empty
   uint64_t num_files = zip_get_num_entries(zip_file_data, 0);
 
-  // zip_get_num_files — is obsolete
   if (!num_files) {
     // The zip file is empty
     fprintf(stderr, "Error, the zip file %s does not have files\n",
@@ -136,8 +134,7 @@ test_code* test_password_zip_file(char* password, const char* zip_file_dir) {
     zip_close(zip_file_data);
     return password_test_code;
   }
-  // For each file in the zip, the p  zip_fclose(file);assword, will be used to
-  // read each file in the zip
+
   for (uint64_t i = 0; i < num_files; i++) {
     struct zip_stat file_stat;
     if (zip_stat_index(zip_file_data, i, 0, &file_stat) != 0) {
