@@ -57,7 +57,3 @@ The program's output will include the name of each ZIP file and the password fou
 ### How to use it:
 > - Using a terminal, and within the project folder (../zippass_serial), type the command:
 "bin/zippass_serial" and add a file that you want to test, for example "tests/input001.txt". For example: bin/zippas_serial tests/input001.txt
-
-
-### Otros
-> -
