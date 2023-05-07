@@ -15,51 +15,49 @@
 
 // procedure main:
 int main(int argc, char* argv[]) {
-  uint32_t ERROR = 0;
+  uint32_t error_code = 0;
   /* if(num_args = 2) then
     declare file_txt := read_txt_file(argument[1])
-    declare num_threads = argument[3];
   */
   if (argc != 3) {
     fprintf(stderr,
-            "Error, you must include a .txt file as argument, and number of "
-            "threads\n");
-    ERROR = 1;
-    return ERROR;
+            "Error, you must include a .txt file as argument and a number of "
+            "threads (It has to be integer greater than 0\n");
+    error_code = 1;
+    return error_code;
   }
-  uint32_t num_threads = 0;
-  num_threads = atoi(argv[2]);
-  if (num_threads <= 0) {
-    num_threads = sysconf(_SC_NPROCESSORS_ONLN);
+  // Number of threads
+  uint32_t number_threads = 0;
+  number_threads = atoi(argv[2]);
+  if (number_threads < 1) {
     fprintf(stderr,
-            "Error, Invalid number of threads, it must be "
-            "equal or greather than 0\n");
-    fprintf(stderr,
-            "By default, Operating system max number of threads will be used: "
-            "%" PRId32 "\n",
-            num_threads);
+            "Error, The number of threads must be greater than 0, Default "
+            "system number of threads will be used\n");
+    // If number of threads is less than 1, then,
+    // default's number of threads will be used
+    number_threads = sysconf(_SC_NPROCESSORS_ONLN);
   }
 
   txt_data txt_file;
   if (!read_txt_file(argv[1], &txt_file)) {
-    ERROR = 2;
-    return ERROR;
+    error_code = 2;
   }
+
   for (uint64_t i = 0; i < *txt_file.num_of_zip_files; i++) {
-    generate_zip_password(txt_file.MAX_PASSWORD_LENGTH, txt_file.alphabet,
+    generate_zip_password(&txt_file.MAX_PASSWORD_LENGTH, txt_file.alphabet,
                           txt_file.zip_files_directions[i]);
   }
 
-  // Memory Leaks fix
   for (uint64_t i = 0; i < *txt_file.num_of_zip_files; i++) {
     free(txt_file.zip_files_directions[i]);
   }
-  free(txt_file.MAX_PASSWORD_LENGTH);
-  free(txt_file.alphabet);
   free(txt_file.zip_files_directions);
   free(txt_file.num_of_zip_files);
+  free(txt_file.alphabet);
+  // free(txt_file.MAX_PASSWORD_LENGTH);
+  // fclose(txt_file.file);
 
-  return ERROR;
+  return error_code;
 }
 
 uint64_t pow_u(uint64_t base, uint64_t exp) {
@@ -82,6 +80,7 @@ void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
   uint64_t pass_lenght = 0;
   bool generate_more_password = true;
   test_code password_test;
+  char* password = 0;
 
   // Password generation was taken from
   // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
@@ -101,40 +100,35 @@ void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
       password_test = test_password_zip_file(password_gen, zip_dir);
       if (password_test.error_code == ZIP_DOES_NOT_EXIST) {
         generate_more_password = false;
-
         break;
       }
       if (password_test.error_code == ZIP_IS_EMPTY) {
         generate_more_password = false;
-
         break;
       }
       if (password_test.error_code == INVALID_FILE_DATA) {
         generate_more_password = false;
-
         break;
       }
       if (password_test.error_code == FAILED_ALLOCATE_MEMORY) {
         generate_more_password = false;
-
         break;
       }
       if (password_test.error_code == ZIP_PROCESSED_SUCESSFULLY) {
+        password = password_gen;
         generate_more_password = false;
-        printf("%s %s\n", zip_dir, password_gen);
+        printf("%s %s\n", zip_dir, password);
         break;
       }
     }
-
-    free(password_gen);
     pass_lenght++;
+    free(password_gen);
   }
 
   if (password_test.error_code != ZIP_PROCESSED_SUCESSFULLY) {
     printf("%s\n", zip_dir);
   }
-
-  //free(password_test);
+  // free(password_test);
 }
 
 test_code test_password_zip_file(char* password, const char* zip_file_dir) {
@@ -175,59 +169,50 @@ test_code test_password_zip_file(char* password, const char* zip_file_dir) {
     }
     struct zip_file* file =
         zip_fopen_index_encrypted(zip_file_data, i, 0, password);
-
     if (file) {
       // If the combination of characters
       // can give access to a protected ZIP file:
-      char* file_content = malloc(file_stat.size + 1); /*-------------*/
-      file_content[file_stat.size] = '\0';
+      char* file_content = malloc(file_stat.size+1);
       if (!file_content) {
         fprintf(stderr, "Error: couldn't allocate memory for the file %s",
                 file_stat.name);
         password_test_code.error_code = FAILED_ALLOCATE_MEMORY;
 
         zip_close(zip_file_data);
-        zip_fclose(file);
         return password_test_code;
       }
       if (zip_fread(file, file_content, file_stat.size) > 0) {
-        char* file_characters = "CI0117-23a";
-        if (strcmp(file_characters, file_content) ==
-            0) { /*---------------------------*/
+        char* file_characters = "CI0117-23a\0";
+        if (strcmp(file_content, file_characters) == 0) {
           password_test_code.error_code = ZIP_PROCESSED_SUCESSFULLY;
 
           free(file_content);
-          zip_close(zip_file_data);
           zip_fclose(file);
+          zip_close(zip_file_data);
           return password_test_code;
         }
-
         zip_fclose(file);
       }
-
       free(file_content);
     }
+    zip_close(zip_file_data);
   }
-
-  zip_close(zip_file_data);
-
   password_test_code.error_code = ZIP_FILE_NOT_READ;
   return password_test_code;
 }
 
 bool read_txt_file(char* file, txt_data* file_data) {
   // procedure read_txt_file:
-  // txt_file = malloc(sizeof(FILE));
-  // txt_file will be stored in dynamic memory
   FILE* txt_file = fopen(file, "r");
   // file = open_file(argument[1])
   // "r" means "read" mode
+  // txt_file will be stored in dynamic memory
 
   if (!(txt_file)) {
     fprintf(stderr, "The file could not be open\n");
-    fclose(txt_file);
     return false;
   }
+  file_data->file = txt_file;
   char* char_alphabet = calloc(sizeof(char), MAX_LINE_LENGHT);
   fgets(char_alphabet, MAX_LINE_LENGHT, txt_file);
 
@@ -250,17 +235,14 @@ bool read_txt_file(char* file, txt_data* file_data) {
 
   if (!(*char_max_password_length)) {
     fprintf(stderr, "Error, Could not read the maximum password length\n");
-    free(char_alphabet);
     fclose(txt_file);
     return false;
   }
 
-  uint64_t* max_pass_length = malloc(sizeof(uint64_t));
-  if (!(*max_pass_length = (uint64_t)atoi(char_max_password_length))) {
+  uint64_t max_pass_length;
+  if (!(max_pass_length = (uint64_t)atoi(char_max_password_length))) {
     fprintf(stderr, "%s is not a valid integer number\n",
             char_max_password_length);
-    free(char_alphabet);
-    free(max_pass_length);
     fclose(txt_file);
     return false;
   }
@@ -287,19 +269,16 @@ bool read_txt_file(char* file, txt_data* file_data) {
   }
 
   file_data->zip_files_directions = zip_directions;
-  fclose(txt_file);
+
   // file = close(file)
   if (num_files == 0) {
-    free(max_pass_length);
-    free(file_data->alphabet);
-    for (uint64_t i = 0; i < *num_files; i++) {
-      free(zip_directions[i]);
-    }
     free(num_files);
-
+    free(file_data);
+    free(zip_directions);
+    fclose(txt_file);
     return false;
   }
   file_data->num_of_zip_files = num_files;
-
+  fclose(txt_file);
   return true;
 }

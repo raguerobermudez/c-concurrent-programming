@@ -1,4 +1,4 @@
-# Homework 01: zippas_serial
+# Homework 01: zippass_pthread
 
 ## CI-0117 Programación Paralela y Concurrente
 

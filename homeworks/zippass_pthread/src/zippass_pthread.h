@@ -29,10 +29,6 @@ enum error_code {
   INVALID_FILE_DATA,
   FAILED_ALLOCATE_MEMORY
 };
-typedef struct thread_info{
-  
-}thread_info;
-
 
 typedef struct password_test_codes {
   char* password;
@@ -40,8 +36,9 @@ typedef struct password_test_codes {
 } test_code;
 
 typedef struct txt_file_data {
+  FILE* file;
   char* alphabet;
-  uint64_t* MAX_PASSWORD_LENGTH;
+  uint64_t MAX_PASSWORD_LENGTH;
   uint64_t* num_of_zip_files;
   char** zip_files_directions;
 } txt_data;
