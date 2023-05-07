@@ -30,11 +30,6 @@ enum error_code {
   FAILED_ALLOCATE_MEMORY
 };
 
-typedef struct thread_status{
-  uint32_t thread_number;
-  bool is_thread_used;
-}thread_status;
-
 typedef struct password_test_codes {
   char* password;
   enum error_code error_code;
@@ -47,11 +42,18 @@ typedef struct txt_file_data {
   char** zip_files_directions;
 } txt_data;
 
-typedef struct threads_shared_info{
+typedef struct threads_shared_info {
   char* zip_dir;
   char* password_found;
   bool continue_test_password;
-}threads_shared_info;
+  pthread_mutex_t mutex;
+  } threads_shared_info;
+
+typedef struct test_password_info{
+  char* password;
+  char* zip_dir;
+  test_code password_test_code;
+}test_password_info;  
 
 /**
  * @brief
@@ -83,12 +85,5 @@ bool read_txt_file(char* file, txt_data* file_data);
 void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
                            const char* zip_dir, const uint64_t num_threads);
 
-/**
- * @brief test_zip_password tries to open a file using a given password
- *
- * @param password A password that will be used to try to open a zip file
- * @param zip_dir The directory of the zip file to be opened
- * @return true if a password is correct
- * @return false if the password in incorrect
- */
-test_code test_password_zip_file(char* password, const char* zip_file_dir);
+
+test_code test_password_zip_file(test_password_info pass_info);

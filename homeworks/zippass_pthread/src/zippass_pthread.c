@@ -79,11 +79,11 @@ void generate_zip_password(uint64_t* password_length, const char* alphabet,
   test_code password_test;
   // Threads info
   pthread_t threads[num_threads];
-  uint64_t thread_counter;
+  uint32_t thread_counter = 0;
   threads_shared_info thread_info;
   thread_info.zip_dir = zip_dir;
-  uint64_t used_threads = 1;
-  //At least one thread will be used;
+  thread_info.continue_test_password = true;
+  // At least one thread will be used;
 
   // Password generation was taken from
   // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
@@ -98,67 +98,62 @@ void generate_zip_password(uint64_t* password_length, const char* alphabet,
         password_gen[pass_length - k - 1] = alphabet[n % strlen(alphabet)];
         n /= strlen(alphabet);
       }
-      printf("%s\n", password_gen);
       alphabet_index++;
-      /*
-      bool continue_generate_password =
-          test_password_zip_file(password_gen, zip_dir);
-      */
+      test_password_info pass_info;
+      pass_info.password = password_gen;
+      pass_info.zip_dir = zip_dir;
+      pass_info.password_test_code = password_test;
+      password_test = test_password_zip_file(pass_info);
 
-      //pthread_join(threads[thread_counter], NULL);
+      pthread_create(&threads[thread_counter], NULL,
+                     (void*)&test_password_zip_file, &pass_info);
+      pthread_join(threads[thread_counter], (void**)&password_test);
       if (thread_counter == num_threads - 1) {
         thread_counter = 0;
-      }else{
+      } else {
         thread_counter++;
       }
-
-      
-      
+      if (password_test.error_code == ZIP_DOES_NOT_EXIST) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test.error_code == ZIP_IS_EMPTY) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test.error_code == INVALID_FILE_DATA) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test.error_code == FAILED_ALLOCATE_MEMORY) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test.error_code == ZIP_PROCESSED_SUCESSFULLY) {
+        generate_more_password = false;
+        printf("%s %s\n", zip_dir, password_gen);
+        break;
+      }
     }
     pass_length++;
+    free(password_gen);
   }
-  
-}
-/*void password_test_status() {
-  if (password_test.error_code == ZIP_DOES_NOT_EXIST) {
-    generate_more_password = false;
-    break;
-  }
-  if (password_test.error_code == ZIP_IS_EMPTY) {
-    generate_more_password = false;
-    break;
-  }
-  if (password_test.error_code == INVALID_FILE_DATA) {
-    generate_more_password = false;
-    break;
-  }
-  if (password_test.error_code == FAILED_ALLOCATE_MEMORY) {
-    generate_more_password = false;
-    break;
-  }
-  if (password_test.error_code == ZIP_PROCESSED_SUCESSFULLY) {
-    generate_more_password = false;
-    printf("%s %s\n", zip_dir, password_gen);
-    break;
-  }
-}
-pass_length++;
-free(password_gen);
 
-
-if (password_test.error_code != ZIP_PROCESSED_SUCESSFULLY) {
-printf("%s\n", zip_dir);
+  if (password_test.error_code != ZIP_PROCESSED_SUCESSFULLY) {
+    printf("%s\n", zip_dir);
+  }
 }
-}
-}*/
 
-test_code test_password_zip_file(char* password, const char* zip_file_dir) {
-  test_code password_test_code;
+test_code test_password_zip_file(test_password_info pass_info) {
+  test_code password_test_code = pass_info.password_test_code;
+  char* password = pass_info.password;
+  char* zip_file_dir = pass_info.zip_dir;
+
   struct zip* zip_file_data = zip_open(zip_file_dir, 0, NULL);
   // zip_open(zip directory, flags, error variable)
 
   if (!zip_file_data) {
-    fprintf(stderr, "Error, the zip file %s does not exist\n", zip_file_dir);
+    // fprintf(stderr, "Error, the zip file %s does not exist\n", zip_file_dir);
     password_test_code.error_code = ZIP_DOES_NOT_EXIST;
     return password_test_code;
   }
@@ -176,7 +171,7 @@ test_code test_password_zip_file(char* password, const char* zip_file_dir) {
   }
 
   for (uint64_t i = 0; i < num_files; i++) {
-    struct zip_stat file_stat;  // free(txt_file.num_of_zip_files);
+    struct zip_stat file_stat;
     if (zip_stat_index(zip_file_data, i, 0, &file_stat) != 0) {
       fprintf(stderr,
               "Error the file %s could no be read"
@@ -197,15 +192,15 @@ test_code test_password_zip_file(char* password, const char* zip_file_dir) {
         fprintf(stderr, "Error: couldn't allocate memory for the file %s",
                 file_stat.name);
         password_test_code.error_code = FAILED_ALLOCATE_MEMORY;
-
+        
         zip_close(zip_file_data);
+        zip_fclose(file);
         return password_test_code;
       }
       if (zip_fread(file, file_content, file_stat.size) > 0) {
         char* file_characters = "CI0117-23a";
-        if (strcmp(file_content, file_characters) == 0) {
+        if (strcmp(file_characters, file_content) == 0) {
           password_test_code.error_code = ZIP_PROCESSED_SUCESSFULLY;
-
           free(file_content);
           zip_fclose(file);
           zip_close(zip_file_data);
