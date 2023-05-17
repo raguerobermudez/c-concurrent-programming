@@ -10,6 +10,7 @@
  *
  */
 #include <inttypes.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -54,6 +55,17 @@ typedef struct test_password_info{
   char* zip_dir;
   test_code password_test_code;
 }test_password_info;  
+
+typedef struct thread_pass_gen_info {
+  char** passwords;
+  uint64_t amount_password;
+  char* alphabet;
+  uint64_t pos_char;
+  uint64_t interval;
+} thread_pass_gen_info;
+
+
+
 
 /**
  * @brief
