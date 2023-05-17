@@ -1,3 +1,6 @@
+// Copyright 2023 Randy Aguero Bermudez
+#ifndef ZIPPASS_PTHREAD_H
+#define ZIPPASS_PTHREAD_H
 /**
  * @file zippass_serial.h
  * @author Randy Jossué Agüero Bermúdez B90082 randy.aguero@ucr.ac.cr
@@ -74,7 +77,15 @@ typedef struct thread_pass_gen_info {
  * @param exp Exponent of a power
  * @return uint64_t Return the result of the power
  */
-uint64_t pow_u(uint64_t base, uint64_t exp);
+uint64_t pow_u(uint64_t base, uint64_t exp) {
+  // Example taken from
+  // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
+  uint64_t result = 1;
+  for (uint64_t i = 0; i < exp; i++) {
+    result *= base;
+  }#include <pthread.h>
+  return result;
+}
 
 /**
  * @brief read_txt_file processes txt file
@@ -99,3 +110,4 @@ void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
 
 
 test_code test_password_zip_file(test_password_info pass_info);
+#endif

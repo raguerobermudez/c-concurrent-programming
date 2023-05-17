@@ -1,8 +1,7 @@
 // Copyright 2023 Randy Aguero Bermudez
-#ifndef FILE_HANDLER_H
-#define FILE_HANDLER_H
+
 /**
- * @file file_handler.h
+ * @file zip_handler.c
  * @author Randy Jossué Agüero Bermúdez B90082 randy.aguero@ucr.ac.cr
  * @brief
  *
@@ -12,4 +11,5 @@
  * @copyright Copyright (c) 2023
  *
  */
-#endif
+
+#include "zip_handler.h"

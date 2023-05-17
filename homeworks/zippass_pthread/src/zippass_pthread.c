@@ -1,3 +1,18 @@
+// Copyright 2023 Randy Aguero Bermudez
+
+/**
+ * @file zippass_pthread.c
+ * @author Randy Jossué Agüero Bermúdez B90082 randy.aguero@ucr.ac.cr
+ * @brief
+ *
+ * @version 1.0
+ * @date 2023-04-12
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+#include "zippass_pthread.h"
+
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -5,7 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "zippass_pthread.h"
+
+#include "common.h"
 #include "file_handler.h"
 #include "passwords_handler.h"
 #include "zip_handler.h"
@@ -89,7 +105,7 @@ int main() {
     thread_info.interval =
         pow_u(strlen(data.alphabet), (pass_length - 1) - index_pass);
 
-    pthread_create(&threads[thread_counter], NULL,(void*) generate_password,
+    pthread_create(&threads[thread_counter], NULL, (void*)generate_password,
                    (void*)&thread_info);
     thread_counter++;
     if (thread_counter >= num_threads) {
@@ -105,7 +121,7 @@ int main() {
   }
 
   for (uint64_t i = 0; i < used_thread_counter; i++) {
-    pthread_join(threads[i],NULL);
+    pthread_join(threads[i], NULL);
   }
 
   for (uint64_t i = 0; i < amount_passwords; i++) {
