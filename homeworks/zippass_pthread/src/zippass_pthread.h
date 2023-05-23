@@ -20,26 +20,44 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <zip.h>
+
 #include "file_handler.h"
+#include "zip_handler.h"
 
 #define MAX_LINE_LENGTH 2048
 #define MAX_NUMBER_ZIP_FILES 100
 
-typedef struct threads_shared_info {
-  char* zip_dir;
-  char* password_found;
-  bool continue_test_password;
-  pthread_mutex_t mutex;
-} threads_shared_info;
+typedef enum program_error_code {
+  INVALID_ARGUMENTS,
+  INVALID_TXT_FILE,
+  NO_ERROR
+} program_error_code;
 
-typedef struct thread_pass_gen_info {
+struct thread_pass_gen_info {
   char** passwords;
   uint64_t amount_password;
   char* alphabet;
   uint64_t pos_char;
   uint64_t interval;
-} thread_pass_gen_info;
+};
 
+struct thread_test_password {
+  char** passwords;
+  char* zip_dir;
+  bool* pass_found;
+  char* password_found;
+  uint64_t zip_dir_num;
+  uint64_t num_passwords;
+  uint32_t num_threads;
+};
+
+struct thread_test_pass_stats {
+  char* password;
+  bool is_password_found;
+  enum test_password_code* test_code;
+  struct zip_file_test_data* zip_data_thread;
+  struct test_status* status;
+};
 /**
  * @brief generate_zip_password uses a force-brute algorithm to find the correct
  * password for a zip file
@@ -51,5 +69,5 @@ typedef struct thread_pass_gen_info {
 void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
                            const char* zip_dir, const uint64_t num_threads);
 
-//test_code test_password_zip_file(test_password_info pass_info);
+// test_code test_password_zip_file(test_password_info pass_info);
 #endif

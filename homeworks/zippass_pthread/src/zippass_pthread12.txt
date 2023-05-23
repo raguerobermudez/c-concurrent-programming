@@ -296,3 +296,5 @@ bool read_txt_file(char* file, txt_data* file_data) {
   fclose(txt_file);
   return true;
 }
+
+

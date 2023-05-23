@@ -21,16 +21,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "common.h"
 #include "file_handler.h"
-#include "passwords_handler.h"
 #include "zip_handler.h"
 
-/*void generate_password(char** passwords, uint64_t amount_password,
-                       char* alphabet, uint64_t pos_char, uint64_t interval) {*/
-
 int main(int argc, char* argv[]) {
-  uint32_t error_code = 0;
+  program_error_code error_code = 0;
 
   // Input verification
 
@@ -59,18 +54,21 @@ int main(int argc, char* argv[]) {
   }
   // Input file read
 
-  txt_data txt_file;
+  txt_file_data txt_file;
   if (!read_txt_file(argv[1], &txt_file)) {
     error_code = INVALID_TXT_FILE;
   }
   // Search for passwords
   error_code = search_zip_passwords(number_threads, &txt_file);
 
+  printf("%s\n",txt_file.alphabet);
+  printf("%"PRIu64"\n",txt_file.max_password_length);
+  printf("%"PRIu64"\n",txt_file.num_of_zip_files);
   for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
+    printf("%s\n",txt_file.zip_files_directions[i]);
     free(txt_file.zip_files_directions[i]);
   }
   free(txt_file.zip_files_directions);
   free(txt_file.alphabet);
-
   return error_code;
 }

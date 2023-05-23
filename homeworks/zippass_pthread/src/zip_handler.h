@@ -14,6 +14,7 @@
  */
 
 #include <inttypes.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -25,24 +26,48 @@
 #include "common.h"
 #include "file_handler.h"
 #include "passwords_handler.h"
+#include "zippass_pthread.h"
 
+
+struct thread_test_password;
 struct passwords_data;
+struct thread_test_pass_stats;
 
-enum error_zip_code {
+
+enum test_password_code{
+  FAILED_ALLOCATED_MEMORY_TEST_PASSWORD,
+  FAILED_ALLOCATE_MEMORY_ZIP_INTERNAL_FILE,
+  FAILED_ALLOCATED_MEMORY_TEST_STRUCT,
   ZIP_PROCESSED_SUCESSFULLY,
-  ZIP_FILE_NOT_READ,
-  ZIP_DOES_NOT_EXIST,
-  ZIP_HAS_NOT_ANY_PASSWORD,
-  ZIP_IS_EMPTY,
-  INVALID_FILE_DATA,
-  FAILED_ALLOCATE_MEMORY
+  ZIP_NOT_PROCESSED,
+  FAILED_MUTEX_INIT_TEST_ZIP_PASSWORD
 };
 
+
 typedef struct zip_files_passwords {
-  char** passwords;
+  char** files_passwords;
   bool* zip_password_found;
-} zip_files_passwords;
+}zip_files_passwords;
+
+ struct zip_file_test_data {
+  struct zip* zip_data;
+  uint64_t num_files;
+  struct zip_stat file_stat;
+};
+
+
+
+void test_password(struct thread_test_pass_stats* test_data);
+
+enum program_error_code open_zip_files(char* zip_direction,
+                                      struct zip_file_test_data* zip_data);
+
+enum test_password_code test_zip_passwords(
+    struct thread_test_password* password_info);
 
 enum program_error_code search_zip_passwords(uint32_t num_threads,
-                                             txt_data* txt_file);
+                                             struct txt_file_data* txt_file);
+enum program_error_code find_zip_passwords(
+    struct txt_file_data txt_file, struct passwords_data* passwords_data,
+    zip_files_passwords* passwords_stats, uint32_t num_threads);
 #endif

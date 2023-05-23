@@ -20,15 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-enum program_error_code {
-  INVALID_ARGUMENTS,
-  INVALID_TXT_FILE,
-  INVALID_ZIP_BASIC_PASSWORD,
-  INSUFFICIENT_PASSWORDS_MEMORY,
-  INSUFFICIENTE_THREAD_PASSWORD_MEMORY,
-  INSUFFICIENTE_DINAMIC_MEMORY,
-  NO_ERROR
-};
+
 
 /**
  * @brief

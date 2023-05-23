@@ -14,6 +14,7 @@
  *
  */
 
+#include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -22,44 +23,36 @@
 #include <string.h>
 #include <unistd.h>
 #include <zip.h>
-#include <assert.h>
+
 #include "common.h"
 #include "file_handler.h"
 #include "zip_handler.h"
 #include "zippass_pthread.h"
 
-
 struct zip_files_passwords;
+struct thread_pass_gen_info;
 
-typedef struct passwords_data {
+
+struct passwords_data {
   char** generated_passwords;
   uint64_t password_length;
   char* alphabet;
-} passwords_data;
+  uint64_t num_passwords;
+};
 
-typedef struct test_password_info {
-  char* password;
-  char* zip_dir;
-  // test_code password_test_code;
-} test_password_info;
-
-typedef struct password_test_codes {
-  char* password;
-  // enum error_zip_code error_codesasd;
-} test_code;
-
-void free_generated_passwords(passwords_data* pass_data, uint64_t pass_length);
+void free_generated_passwords(struct passwords_data* pass_data,
+                              uint64_t pass_length);
 
 enum program_error_code generate_zip_passwords(uint64_t pass_length,
-                                               txt_data* txt_file,
-                                               passwords_data* pass_data,
+                                               struct txt_file_data* txt_file,
+                                               struct passwords_data* pass_data,
                                                uint32_t num_threads);
 
 void* generate_passwords_list(uint64_t amount_passwords, uint32_t pass_length);
 
-void generate_zip_basic_password(struct zip_files_passwords* zip_passwords, uint64_t num_zip_files,
-                                 char** zip_dir);
+void generate_zip_basic_password(struct zip_files_passwords* zip_passwords,
+                                 uint64_t num_zip_files, char** zip_dir);
 
-void generate_passwords(thread_pass_gen_info* thread_info);
+void generate_passwords(struct thread_pass_gen_info* thread_info);
 
 #endif

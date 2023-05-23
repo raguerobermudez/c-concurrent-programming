@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-bool read_txt_file(char* file, txt_data* file_data) {
+bool read_txt_file(char* file, struct txt_file_data* file_data) {
   // procedure read_txt_file:
   FILE* txt_file = fopen(file, "r");
   // file = open_file(argument[1])
@@ -82,7 +82,7 @@ bool read_txt_file(char* file, txt_data* file_data) {
 
     zip_directions[num_files] = malloc(strlen(zip_dir) + 1);
     zip_dir[strcspn(zip_dir, "\n")] = '\0';
-    snprintf(zip_directions[num_files], strlen(zip_dir), "%s", zip_dir);
+    snprintf(zip_directions[num_files], strlen(zip_dir) + 1, "%s", zip_dir);
     (num_files)++;
   }
 
