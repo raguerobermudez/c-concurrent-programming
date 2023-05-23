@@ -30,6 +30,7 @@
 typedef enum program_error_code {
   INVALID_ARGUMENTS,
   INVALID_TXT_FILE,
+  ERROR_DINAMIC_MEMORY,
   NO_ERROR
 } program_error_code;
 
