@@ -57,8 +57,11 @@ int main(int argc, char* argv[]) {
   txt_file_data txt_file;
   if (!read_txt_file(argv[1], &txt_file)) {
     error_code = INVALID_TXT_FILE;
+    return error_code;
   }
   // Search for passwords
+   
+   
   error_code = search_zip_passwords(number_threads, &txt_file);
 
   printf("%s\n",txt_file.alphabet);

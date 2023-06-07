@@ -21,16 +21,19 @@
 #include <unistd.h>
 
 #include "file_handler.h"
+#include "zippass_pthread.h"
 
 #define MAX_LINE_LENGTH 2048
 #define MAX_NUMBER_ZIP_FILES 100
+
+struct thread_pass_test;
 
 typedef struct txt_file_data {
   char* alphabet;
   uint64_t max_password_length;
   uint64_t num_of_zip_files;
   char** zip_files_directions;
-}txt_file_data;
+} txt_file_data;
 
 /**
  * @brief read_txt_file processes txt file
@@ -41,5 +44,7 @@ typedef struct txt_file_data {
  * @return false If the txt file is not a valid txt file
  */
 bool read_txt_file(char* file, struct txt_file_data* file_data);
+
+void open_file(struct thread_pass_test* test_info);
 
 #endif

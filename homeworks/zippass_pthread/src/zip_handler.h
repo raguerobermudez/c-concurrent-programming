@@ -31,15 +31,7 @@
 struct thread_test_password;
 struct passwords_data;
 struct thread_test_pass_stats;
-
-enum test_password_code {
-  FAILED_ALLOCATED_MEMORY_TEST_PASSWORD,
-  FAILED_ALLOCATE_MEMORY_ZIP_INTERNAL_FILE,
-  FAILED_ALLOCATED_MEMORY_TEST_STRUCT,
-  ZIP_PROCESSED_SUCESSFULLY,
-  ZIP_NOT_PROCESSED,
-  FAILED_MUTEX_INIT_TEST_ZIP_PASSWORD
-};
+struct txt_file_data;
 
 typedef struct zip_files_passwords {
   char** files_passwords;
@@ -53,6 +45,11 @@ struct zip_file_test_data {
   uint64_t num_files;
   struct zip_stat file_stat;
 };
+
+
+enum program_error_code generate_zip_file_data(zip_files_passwords* zip_passwords,
+                                          uint64_t num_zip_files,
+                                          char** zip_dir);
 
 void test_password(struct thread_test_pass_stats* test_data);
 

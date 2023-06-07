@@ -14,163 +14,121 @@
 
 #include "passwords_handler.h"
 
-void free_generated_passwords(struct passwords_data* pass_data,
-                              uint64_t pass_length) {
-  uint64_t amount_passwords = pow_u(strlen(pass_data->alphabet), pass_length);
-  for (uint64_t i = 0; i < amount_passwords; i++) {
-    free(pass_data->generated_passwords[i]);
-  }
-  free(pass_data->generated_passwords);
-}
+/*void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
+                           const char* zip_dir) {
+  //  declare num_position :=0
+  //  declare password_generated[password_lenght];
+  //  declare password_temp[]
+  //  declare is_password_found
 
-program_error_code generate_zip_passwords(uint64_t pass_length,
-                                          struct passwords_data* pass_data,
-                                          uint32_t num_threads) {
-  uint64_t amount_passwords = pow_u(strlen(pass_data->alphabet), pass_length);
-  // Memory is save
-  pass_data->num_passwords = amount_passwords;
-  pass_data->generated_passwords =
-      generate_passwords_list(amount_passwords, pass_length);
-  if (!pass_data->generated_passwords) {
-    return NO_ERROR;
-  }
-  pthread_t threads[num_threads];
-  struct thread_pass_gen_info* thread_info;
-  thread_info = malloc(sizeof(struct thread_pass_gen_info) * num_threads);
-  if (!thread_info) {
-    fprintf(stderr, "Error, could not allocate enough memory for thread data");
-    return NO_ERROR;
-  }
-  for (uint64_t i = 0; i < num_threads; i++) {
-    thread_info[i].passwords = pass_data->generated_passwords;
-    thread_info[i].amount_password = amount_passwords;
-    thread_info[i].alphabet = pass_data->alphabet;
-  }
+  uint64_t pass_lenght = 0;
+  bool generate_more_password = true;
+  test_code* password_test = NULL;
+  char* password = 0;
 
-  uint64_t thread_counter = 0;
-  uint64_t used_thread_counter = 0;
-
-  for (uint64_t index_pass = 0; index_pass < pass_length; index_pass++) {
-    // alfabeto, intervalo, pos_char
-    thread_info[thread_counter].pos_char = index_pass;
-    thread_info[thread_counter].interval =
-        pow_u(strlen(pass_data->alphabet), (pass_length - 1) - index_pass);
-
-    pthread_create(&threads[thread_counter], NULL, (void*)generate_passwords,
-                   (void*)&thread_info[thread_counter]);
-    thread_counter++;
-    if (thread_counter >= num_threads) {
-      thread_counter = 0;
-    }
-    if (used_thread_counter < num_threads) {
-      used_thread_counter++;
-    }
-  }
-
-  for (uint64_t i = 0; i < used_thread_counter; i++) {
-    pthread_join(threads[i], NULL);
-  }
-
-   /*for (uint64_t i = 0; i < amount_passwords; i++) {
-      printf("i :%" PRIu64" Password: %s\n", i,
-    pass_data->generated_passwords[i]);
-    }
-    printf("\n");*/
-    /*for(uint64_t i = 0; i<num_threads;i++){
-      free(&thread_info[i]);
-    }*/
-  return NO_ERROR;
-}
-
-void* generate_passwords_list(uint64_t amount_passwords, uint32_t pass_length) {
-  char** password_list = calloc(amount_passwords, sizeof(char*));
-  if (!(password_list)) {
-    fprintf(stderr,
-            "Error, The program could not allocated enough memory to save "
-            "passwords\n");
-    return NULL;
-  }
-  for (uint64_t i = 0; i < amount_passwords; i++) {
-    (password_list)[i] = calloc(pass_length + 1, sizeof(char));
-    if (!(password_list[i])) {
-      for (uint64_t j = 0; j < i; j++) {
-        free((&password_list)[j]);
+  // Password generation was taken from
+  // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
+  while (pass_lenght <= *password_lenght && generate_more_password) {
+    char* password_gen = calloc(pass_lenght + 1, sizeof(char));
+    uint64_t total_posible_combination = pow_u(strlen(ALPHABET), pass_lenght);
+    uint64_t alphabet_index = 0;
+    while (alphabet_index < total_posible_combination &&
+           generate_more_password) {
+      u_int64_t n = alphabet_index;
+      for (uint64_t k = 0; k < pass_lenght; k++) {
+        password_gen[pass_lenght - k - 1] = ALPHABET[n % strlen(ALPHABET)];
+        n /= strlen(ALPHABET);
       }
-      free(password_list);
-      return NULL;
-    }
-  }
+      alphabet_index++;
 
-  return password_list;
-}
-
-void generate_passwords(struct thread_pass_gen_info* thread_info) {
-  assert(thread_info);
-  uint64_t counter_interval = 0;
-  uint64_t counter_alphabet = 0;
-  for (uint64_t i = 0; i < thread_info->amount_password; i++) {
-    thread_info->passwords[i][thread_info->pos_char] =
-        thread_info->alphabet[counter_alphabet];
-    counter_interval++;
-
-    if (counter_interval == thread_info->interval) {
-      counter_alphabet++;
-      counter_interval = 0;
-    }
-
-    if (counter_alphabet == strlen(thread_info->alphabet)) {
-      counter_alphabet = 0;
-    }
-  }
-}
-
-program_error_code generate_zip_file_data(zip_files_passwords* zip_passwords,
-                                          uint64_t num_zip_files,
-                                          char** zip_dir) {
-  // The zip directions will be saved in files_passwords and zip_files_dir
-  zip_passwords->files_passwords = calloc(num_zip_files, sizeof(char*));
-  zip_passwords->zip_files_dir = calloc(num_zip_files, sizeof(char*));
-  if (!zip_passwords->files_passwords || !zip_passwords->zip_files_dir) {
-    fprintf(stderr,
-            "Error, failed to allocate memory for zip_passwords\n"
-            "Function generate_zip_file_data() : passwords_handler.c");
-    return ERROR_DINAMIC_MEMORY;
-  }
-  for (uint64_t i = 0; i < num_zip_files; i++) {
-    zip_passwords->files_passwords[i] =
-        calloc(strlen(zip_dir[i]) + 1, sizeof(char));
-    zip_passwords->zip_files_dir[i] =
-        calloc(strlen(zip_dir[i]) + 1, sizeof(char));
-    if (!zip_passwords->files_passwords[i] || !zip_passwords->zip_files_dir) {
-      fprintf(stderr,
-              "Error, failed to allocate memory for zip_passwords\n"
-              "Function generate_zip_file_data() : passwords_handler.c");
-      for (uint64_t j = 0; j < i; j++) {
-        free(zip_passwords->files_passwords[j]);
-        free(zip_passwords->zip_files_dir[j]);
+      password_test = test_password_zip_file(password_gen, zip_dir);
+      if (password_test->error_code == ZIP_DOES_NOT_EXIST) {
+      clear && make clean && make && bin/zippass_pthread tests/input003.txt 8  break;
       }
-      free(zip_passwords->files_passwords);
-      free(zip_passwords->zip_files_dir);
-      return ERROR_DINAMIC_MEMORY;
+      if (password_test->error_code == INVALID_FILE_DATA) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == FAILED_ALLOCATE_MEMORY) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == ZIP_PROCESSED_SUCESSFULLY) {
+        password = password_gen;
+        generate_more_password = false;
+        printf("%s %s\n", zip_dir, password);
+        break;
+      }
     }
-    snprintf(zip_passwords->files_passwords[i], strlen(zip_dir[i]) + 1, "%s",
-             zip_dir[i]);
-    snprintf(zip_passwords->zip_files_dir[i], strlen(zip_dir[i]) + 1, "%s",
-             zip_dir[i]);
+    pass_lenght++;
   }
-  // The array zip_password_found will store boolean values indicating whether a
-  // password for a zip file has been found.
-  zip_passwords->zip_password_found = calloc(num_zip_files, sizeof(bool));
-  if (!zip_passwords->zip_password_found) {
-    fprintf(stderr,
-            "Error, failed to allocate memory for zip_passwords\n"
-            "Function generate_zip_file_data() : passwords_handler.c");
-    for (uint64_t j = 0; j < num_zip_files; j++) {
-      free(zip_passwords->files_passwords[j]);
-      free(zip_passwords->zip_files_dir[j]);
+
+  if (password_test->error_code != ZIP_PROCESSED_SUCESSFULLY) {
+    printf("%s\n", zip_dir);
+  }
+  free(password_test);
+}*/
+
+//Cambiar funcion void
+void find_password(struct thread_pass_search_info* thread_info) {
+  //  declare num_position :=0
+  //  declare password_generated[password_lenght];
+  //  declare password_temp[]
+  //  declare is_password_found
+
+  uint64_t pass_lenght = 0;
+  bool generate_more_password = true;
+  char* password = 0;
+
+  struct thread_pass_test* test_pass = malloc(sizeof(*test_pass));
+  test_pass->pass_is_found = thread_info->pass_is_found;
+  test_pass->zip_file_dir = thread_info->zip_file_dir;
+  test_pass->stat = thread_info->stat;
+  test_pass->password_file = thread_info->password_file;
+
+  // Password generation was taken from
+  // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
+  while (pass_lenght <= thread_info->password_length && generate_more_password) {
+    char* password_gen = calloc(pass_lenght + 1, sizeof(char));
+    uint64_t total_posible_combination = pow_u(strlen(thread_info->alphabet), pass_lenght);
+    uint64_t alphabet_index = 0;
+    while (alphabet_index < total_posible_combination &&
+           generate_more_password) {
+      u_int64_t n = alphabet_index;
+      for (uint64_t k = 0; k < pass_lenght; k++) {
+        password_gen[pass_lenght - k - 1] = thread_info->alphabet[n % strlen(thread_info->alphabet)];
+        n /= strlen(thread_info->alphabet);
+      }
+      alphabet_index++;
+      test_pass->password = password_gen;
+      //printf("%s\n", password_gen);
+      open_file(test_pass);
+     
+      /*if (password_test->error_code == ZIP_DOES_NOT_EXIST) {
+      clear && make clean && make && bin/zippass_pthread tests/input003.txt 8  break;
+      }
+      if (password_test->error_code == INVALID_FILE_DATA) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == FAILED_ALLOCATE_MEMORY) {
+        generate_more_password = false;
+        break;
+      }
+      if (password_test->error_code == ZIP_PROCESSED_SUCESSFULLY) {
+        password = password_gen;
+        generate_more_password = false;
+        printf("%s %s\n", zip_dir, password);
+        break;
+      }*/
     }
-    free(zip_passwords->files_passwords);
-    free(zip_passwords->zip_files_dir);
+    pass_lenght++;
   }
-  return NO_ERROR;
+
+ /* if (password_test->error_code != ZIP_PROCESSED_SUCESSFULLY) {
+    printf("%s\n", zip_dir);
+  }
+  free(password_test);*/
+  
 }
+

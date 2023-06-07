@@ -30,27 +30,14 @@
 #include "zippass_pthread.h"
 
 struct zip_files_passwords;
-struct thread_pass_gen_info;
+struct thread_pass_search_info;
 
 struct passwords_data {
-  char** generated_passwords;
   uint64_t password_length;
   char* alphabet;
   uint64_t num_passwords;
 };
 
-void free_generated_passwords(struct passwords_data* pass_data,
-                              uint64_t pass_length);
-
-enum program_error_code generate_zip_passwords(uint64_t pass_length,
-                                               struct passwords_data* pass_data,
-                                               uint32_t num_threads);
-
-void* generate_passwords_list(uint64_t amount_passwords, uint32_t pass_length);
-
-enum program_error_code generate_zip_file_data(struct zip_files_passwords* zip_passwords,
-                                 uint64_t num_zip_files, char** zip_dir);
-
-void generate_passwords(struct thread_pass_gen_info* thread_info);
+void find_password(struct thread_pass_search_info* thread_info);
 
 #endif

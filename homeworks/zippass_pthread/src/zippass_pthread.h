@@ -34,30 +34,32 @@ typedef enum program_error_code {
   NO_ERROR
 } program_error_code;
 
-struct thread_pass_gen_info {
-  char** passwords;
-  uint64_t amount_password;
+enum test_code_stats{
+  ZIP_DOES_NOT_EXIST,
+  ZIP_IS_EMPTY,  
+  INVALID_FILE_DATA,
+  FAILED_ALLOCATE_MEMORY,
+  ZIP_PROCESSED_SUCESSFULLY,
+  ZIP_NOT_PROCESSED
+};
+struct thread_pass_search_info{
+  //Shared info
+  uint64_t password_length;
   char* alphabet;
-  uint64_t pos_char;
-  uint64_t interval;
+
+  // Private info
+  char* password_file;
+  bool* pass_is_found;
+  char* zip_file_dir;
+  enum test_code_stats stat; 
 };
 
-struct thread_test_password {
-  char** passwords;
-  char* zip_dir;
-  bool* pass_found;
-  char* password_found;
-  uint64_t zip_dir_num;
-  uint64_t num_passwords;
-  uint32_t num_threads;
-};
-
-struct thread_test_pass_stats {
+struct thread_pass_test{
+  char* password_file;
   char* password;
-  bool is_password_found;
-  enum test_password_code* test_code;
-  struct zip_file_test_data* zip_data_thread;
-  struct test_status* status;
+  bool* pass_is_found;
+  char* zip_file_dir;
+  enum test_code_stats stat;
 };
 /**
  * @brief generate_zip_password uses a force-brute algorithm to find the correct
