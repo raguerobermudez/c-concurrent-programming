@@ -46,22 +46,15 @@ struct zip_file_test_data {
   struct zip_stat file_stat;
 };
 
-
-enum program_error_code generate_zip_file_data(zip_files_passwords* zip_passwords,
-                                          uint64_t num_zip_files,
-                                          char** zip_dir);
+enum program_error_code generate_zip_file_data(
+    zip_files_passwords* zip_passwords, uint64_t num_zip_files, char** zip_dir);
 
 void test_password(struct thread_test_pass_stats* test_data);
 
-enum program_error_code open_zip_files(char* zip_direction,
-                                       struct zip_file_test_data* zip_data);
-
-enum test_password_code test_zip_passwords(
-    struct thread_test_password* password_info);
 
 enum program_error_code search_zip_passwords(uint32_t num_threads,
                                              struct txt_file_data* txt_file);
-enum program_error_code find_zip_passwords(
-    zip_files_passwords* zip_data, struct passwords_data* passwords_data,
-    uint32_t num_threads);
+
+void free_zips_passwords(struct zip_files_passwords* zips_passwords,
+                        struct txt_file_data* txt_data);
 #endif

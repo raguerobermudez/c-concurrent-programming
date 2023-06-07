@@ -1,4 +1,4 @@
-
+// Copyright 2023 Randy Aguero Bermudez
 
 #include "common.h"
 

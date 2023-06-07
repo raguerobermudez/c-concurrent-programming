@@ -20,8 +20,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
-
 /**
  * @brief
  *
@@ -29,5 +27,5 @@
  * @param exp Exponent of a power
  * @return uint64_t Return the result of the power
  */
-uint64_t  pow_u(uint64_t base, uint64_t exp);
+uint64_t pow_u(uint64_t base, uint64_t exp);
 #endif

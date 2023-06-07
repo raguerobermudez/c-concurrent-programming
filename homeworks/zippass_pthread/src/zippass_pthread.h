@@ -34,16 +34,16 @@ typedef enum program_error_code {
   NO_ERROR
 } program_error_code;
 
-enum test_code_stats{
+enum test_code_stats {
   ZIP_DOES_NOT_EXIST,
-  ZIP_IS_EMPTY,  
+  ZIP_IS_EMPTY,
   INVALID_FILE_DATA,
   FAILED_ALLOCATE_MEMORY,
   ZIP_PROCESSED_SUCESSFULLY,
   ZIP_NOT_PROCESSED
 };
-struct thread_pass_search_info{
-  //Shared info
+struct thread_pass_search_info {
+  // Shared info
   uint64_t password_length;
   char* alphabet;
 
@@ -51,10 +51,10 @@ struct thread_pass_search_info{
   char* password_file;
   bool* pass_is_found;
   char* zip_file_dir;
-  enum test_code_stats stat; 
+  enum test_code_stats stat;
 };
 
-struct thread_pass_test{
+struct thread_pass_test {
   char* password_file;
   char* password;
   bool* pass_is_found;

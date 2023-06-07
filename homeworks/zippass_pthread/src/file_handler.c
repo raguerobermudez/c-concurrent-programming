@@ -141,7 +141,7 @@ void open_file(struct thread_pass_test* test_info) {
   if (file) {
     // If the combination of characters
     // can give access to a protected ZIP file:
-    char* file_content = calloc(1,file_stat.size+1);
+    char* file_content = calloc(1, file_stat.size + 1);
     if (!file_content) {
       fprintf(stderr, "Error: couldn't allocate memory for the file %s",
               file_stat.name);
@@ -156,10 +156,13 @@ void open_file(struct thread_pass_test* test_info) {
     if (zip_fread(file, file_content, strlen(file_characters)) > 0) {
       if (strcmp(file_characters, file_content) == 0) {
         *test_info->pass_is_found = true;
-        test_info->password_file = test_info->password;
         test_info->stat = ZIP_PROCESSED_SUCESSFULLY;
-        printf("%s %s\n", test_info->zip_file_dir, test_info->password);
+
+        strcpy(test_info->password_file, test_info->password);
+        free(file_content);
+        zip_fclose(file);
         zip_close(zip_file_data);
+
         return;
       }
       zip_fclose(file);

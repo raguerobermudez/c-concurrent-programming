@@ -29,14 +29,8 @@
 #include "zip_handler.h"
 #include "zippass_pthread.h"
 
-struct zip_files_passwords;
 struct thread_pass_search_info;
 
-struct passwords_data {
-  uint64_t password_length;
-  char* alphabet;
-  uint64_t num_passwords;
-};
 
 void find_password(struct thread_pass_search_info* thread_info);
 

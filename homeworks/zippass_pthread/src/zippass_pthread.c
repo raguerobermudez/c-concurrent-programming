@@ -60,18 +60,21 @@ int main(int argc, char* argv[]) {
     return error_code;
   }
   // Search for passwords
-   
-   
+
   error_code = search_zip_passwords(number_threads, &txt_file);
 
-  printf("%s\n",txt_file.alphabet);
-  printf("%"PRIu64"\n",txt_file.max_password_length);
-  printf("%"PRIu64"\n",txt_file.num_of_zip_files);
   for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
-    printf("%s\n",txt_file.zip_files_directions[i]);
-    free(txt_file.zip_files_directions[i]);
+    if (txt_file.zip_files_directions[i]) {
+      free(txt_file.zip_files_directions[i]);
+    }
   }
-  free(txt_file.zip_files_directions);
-  free(txt_file.alphabet);
+  if (txt_file.zip_files_directions) {
+    free(txt_file.zip_files_directions);
+  }
+
+  if (txt_file.alphabet) {
+    free(txt_file.alphabet);
+  }
+
   return error_code;
 }
