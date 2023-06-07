@@ -79,7 +79,7 @@ program_error_code search_zip_passwords(uint32_t num_threads,
             "Function search_zip_passwords() zip_handler.c\n");
     return ERROR_DINAMIC_MEMORY;
   }
-
+  zips_passwords->num_threads = num_threads;
   error_code =
       generate_zip_file_data(zips_passwords, txt_data->num_of_zip_files,
                              txt_data->zip_files_directions);
@@ -115,6 +115,7 @@ program_error_code search_zip_passwords(uint32_t num_threads,
     thread_info->password_length = txt_data->max_password_length;
     thread_info->zip_file_dir = zips_passwords->zip_files_dir[i];
     thread_info->stat = ZIP_NOT_PROCESSED;
+    thread_info->num_threads = zips_passwords->num_threads;
 
     find_password(thread_info);
   }
@@ -124,7 +125,7 @@ program_error_code search_zip_passwords(uint32_t num_threads,
   for (uint64_t i = 0; i < txt_data->num_of_zip_files; i++) {
     if (zips_passwords->zip_password_found) {
       // if is found
-      printf("%s ", zips_passwords->zip_files_dir[i]);
+      printf("|%s |", zips_passwords->zip_files_dir[i]);
       printf(" %s\n", zips_passwords->files_passwords[i]);
     }
   }

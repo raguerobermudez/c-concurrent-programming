@@ -46,6 +46,7 @@ struct thread_pass_search_info {
   // Shared info
   uint64_t password_length;
   char* alphabet;
+  uint32_t num_threads;
 
   // Private info
   char* password_file;
@@ -60,6 +61,7 @@ struct thread_pass_test {
   bool* pass_is_found;
   char* zip_file_dir;
   enum test_code_stats stat;
+  pthread_mutex_t* mutex_pass;
 };
 /**
  * @brief generate_zip_password uses a force-brute algorithm to find the correct

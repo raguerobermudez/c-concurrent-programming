@@ -38,6 +38,7 @@ typedef struct zip_files_passwords {
   pthread_mutex_t password_found_mutex;
   bool* zip_password_found;
   char** zip_files_dir;
+  uint32_t num_threads;
 } zip_files_passwords;
 
 struct zip_file_test_data {

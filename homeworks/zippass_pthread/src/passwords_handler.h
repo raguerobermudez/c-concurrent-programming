@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <zip.h>
+#include <semaphore.h>
 
 #include "common.h"
 #include "file_handler.h"

@@ -28,7 +28,7 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
   // txt_file will be stored in dynamic memory
 
   if (!txt_file) {
-    fprintf(stderr, "The file could not be open\n");
+    fprintf(stderr, "The file could nost be open\n");
     return false;
   }
 
@@ -103,16 +103,17 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
 }
 
 void open_file(struct thread_pass_test* test_info) {
+  pthread_mutex_lock(test_info->mutex_pass);
   struct zip* zip_file_data = zip_open(test_info->zip_file_dir, 0, NULL);
-  // zip_open(zip directory, flags, error variable)
-
   if (!zip_file_data) {
     fprintf(stderr, "Error, the zip file %s does not exist\n",
             test_info->zip_file_dir);
-    // password_test_code->error_code = ZIP_DOES_NOT_EXIST;
+
     test_info->stat = ZIP_DOES_NOT_EXIST;
+    pthread_mutex_unlock(test_info->mutex_pass);
     return;
   }
+  pthread_mutex_unlock(test_info->mutex_pass);
 
   // It will analyze if the zip is empty
   uint64_t num_files = zip_get_num_entries(zip_file_data, 0);
@@ -121,55 +122,66 @@ void open_file(struct thread_pass_test* test_info) {
     // The zip file is empty
     fprintf(stderr, "Error, the zip file %s does not have files\n",
             test_info->zip_file_dir);
+    pthread_mutex_lock(test_info->mutex_pass);
     test_info->stat = ZIP_IS_EMPTY;
+    pthread_mutex_unlock(test_info->mutex_pass);
     zip_close(zip_file_data);
     return;
   }
-
-  struct zip_stat file_stat;
-  if (zip_stat_index(zip_file_data, 0, 0, &file_stat) != 0) {
-    fprintf(stderr,
-            "Error the file %s could no be read"
-            " it has invalid data\n",
-            zip_get_name(zip_file_data, 0, 0));
-    test_info->stat = INVALID_FILE_DATA;
-    zip_close(zip_file_data);
-    return;
-  }
-  struct zip_file* file =
-      zip_fopen_index_encrypted(zip_file_data, 0, 0, test_info->password);
-  if (file) {
-    // If the combination of characters
-    // can give access to a protected ZIP file:
-    char* file_content = calloc(1, file_stat.size + 1);
-    if (!file_content) {
-      fprintf(stderr, "Error: couldn't allocate memory for the file %s",
-              file_stat.name);
-
-      test_info->stat = FAILED_ALLOCATE_MEMORY;
-
+  for(uint64_t i = 0; i<num_files;i++){
+    struct zip_stat file_stat;
+    if (zip_stat_index(zip_file_data, i, 0, &file_stat) != 0) {
+      fprintf(stderr,
+              "Error the file %s could no be read"
+              " it has invalid data\n",
+              zip_get_name(zip_file_data, i, 0));
+      pthread_mutex_lock(test_info->mutex_pass);
+      test_info->stat = INVALID_FILE_DATA;
+      pthread_mutex_unlock(test_info->mutex_pass);
       zip_close(zip_file_data);
       return;
     }
-    char* file_characters = "CI0117-23a";
-
-    if (zip_fread(file, file_content, strlen(file_characters)) > 0) {
-      if (strcmp(file_characters, file_content) == 0) {
-        *test_info->pass_is_found = true;
-        test_info->stat = ZIP_PROCESSED_SUCESSFULLY;
-
-        strcpy(test_info->password_file, test_info->password);
-        free(file_content);
-        zip_fclose(file);
+   
+    struct zip_file* file =
+        zip_fopen_index_encrypted(zip_file_data, 0, 0, test_info->password);
+    if (file) {
+      printf("LEgga\n");
+      // If the combination of characters
+      // can give access to a protected ZIP file:
+      char* file_content = malloc(file_stat.size);
+      if (!file_content) {
+        fprintf(stderr, "Error: couldn't allocate memory for the file %s",
+                file_stat.name);
+        pthread_mutex_lock(test_info->mutex_pass);
+        test_info->stat = FAILED_ALLOCATE_MEMORY;
+        pthread_mutex_unlock(test_info->mutex_pass);
         zip_close(zip_file_data);
-
         return;
       }
-      zip_fclose(file);
+      char* file_characters = "CI0117-23a";
+      
+      uint64_t char_count = zip_fread(file, file_content, file_stat.size);
+  
+      if ( char_count > 0) {
+        if (strncmp(file_characters, file_content,file_stat.size) == 0) {
+        
+          pthread_mutex_lock(test_info->mutex_pass);
+          *test_info->pass_is_found = true;
+          test_info->stat = ZIP_PROCESSED_SUCESSFULLY;
+          strcpy(test_info->password_file, test_info->password);
+          free(file_content);
+          zip_fclose(file);
+
+          zip_close(zip_file_data);
+          pthread_mutex_unlock(test_info->mutex_pass);
+          return;
+        }
+        zip_fclose(file);
+      }
+      free(file_content);
     }
-    free(file_content);
   }
-  zip_close(zip_file_data);
+    zip_close(zip_file_data);
 
   return;
 }
