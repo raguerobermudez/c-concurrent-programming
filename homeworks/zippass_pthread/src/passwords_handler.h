@@ -16,14 +16,16 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
+#include <semaphore.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include <zip.h>
-#include <semaphore.h>
 
 #include "common.h"
 #include "file_handler.h"
@@ -32,7 +34,8 @@
 
 struct thread_pass_search_info;
 
-
+void generate_passwords(char** passwords, char* alphabet,
+                        uint64_t password_length);
 void find_password(struct thread_pass_search_info* thread_info);
 
 #endif

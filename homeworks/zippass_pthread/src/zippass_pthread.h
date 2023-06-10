@@ -45,8 +45,8 @@ enum test_code_stats {
 struct thread_pass_search_info {
   // Shared info
   uint64_t password_length;
-  char* alphabet;
-  uint32_t num_threads;
+  char* alphabet;        // 26
+  uint32_t num_threads;  // 4
 
   // Private info
   char* password_file;
@@ -60,9 +60,24 @@ struct thread_pass_test {
   char* password;
   bool* pass_is_found;
   char* zip_file_dir;
-  enum test_code_stats stat;
+  enum test_code_stats* stat;
   pthread_mutex_t* mutex_pass;
 };
+
+// Each thread will have to test a certain amount of passwords
+struct thread_test_passwords {
+  char** passwords;
+  char* zip_file_dir;
+  char* password_file;
+  uint64_t start_index;
+  uint64_t finish_index;
+  pthread_mutex_t* mutex_pass;
+  enum test_code_stats* stat;
+  bool* pass_is_found;
+};
+
+void thread_test_passwords(struct thread_test_passwords* test_passwords);
+
 /**
  * @brief generate_zip_password uses a force-brute algorithm to find the correct
  * password for a zip file

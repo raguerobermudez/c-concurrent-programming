@@ -30,15 +30,12 @@ enum program_error_code generate_zip_file_data(
   for (uint64_t i = 0; i < num_zip_files; i++) {
     zip_passwords->zip_files_dir[i] =
         calloc(strlen(zip_dir[i]) + 1, sizeof(char));
-    zip_passwords->files_passwords[i] =
-        calloc(strlen(zip_dir[i]) + 1, sizeof(char));
-    if (!zip_passwords->files_passwords || !zip_passwords->zip_files_dir) {
+    if (!zip_passwords->zip_files_dir) {
       fprintf(stderr,
               "Error, failed to allocate memory for zip_passwords\n"
               "Function generate_zip_file_data() : passwords_handler.c\n");
       for (uint64_t j = 0; j < i; j++) {
         free(zip_passwords->zip_files_dir[j]);
-        free(zip_passwords->files_passwords[j]);
       }
 
       free(zip_passwords->zip_files_dir);
@@ -57,7 +54,6 @@ enum program_error_code generate_zip_file_data(
             "Error, failed to allocate memory for zip_passwords\n"
             "Function generate_zip_file_data() : passwords_handler.c\n");
     for (uint64_t j = 0; j < num_zip_files; j++) {
-      free(zip_passwords->files_passwords[j]);
       free(zip_passwords->zip_files_dir[j]);
     }
     free(zip_passwords->files_passwords);
@@ -126,7 +122,9 @@ program_error_code search_zip_passwords(uint32_t num_threads,
     if (zips_passwords->zip_password_found) {
       // if is found
       printf("|%s |", zips_passwords->zip_files_dir[i]);
+      if(!zips_passwords->files_passwords[i]){
       printf(" %s\n", zips_passwords->files_passwords[i]);
+      }
     }
   }
 

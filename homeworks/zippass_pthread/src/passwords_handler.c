@@ -14,98 +14,24 @@
 
 #include "passwords_handler.h"
 
-/*void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
-                           const char* zip_dir) {
-  //  declare num_position :=0
-  //  declare password_generated[password_lenght];
-  //  declare password_temp[]
-  //  declare is_password_found
-
-  uint64_t pass_lenght = 0;
-  bool generate_more_password = true;
-  test_code* password_test = NULL;
-  char* password = 0;
-
-  // Password generation was taken from
-  //
-https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
-  while (pass_lenght <= *password_lenght && generate_more_password) {
-    char* password_gen = calloc(pass_lenght + 1, sizeof(char));
-    uint64_t total_posible_combination = pow_u(strlen(ALPHABET), pass_lenght);
-    uint64_t alphabet_index = 0;
-    while (alphabet_index < total_posible_combination &&
-           generate_more_password) {
-      u_int64_t n = alphabet_index;
-      for (uint64_t k = 0; k < pass_lenght; k++) {
-        password_gen[pass_lenght - k - 1] = ALPHABET[n % strlen(ALPHABET)];
-        n /= strlen(ALPHABET);
-      }
-      alphabet_index++;
-
-      password_test = test_password_zip_file(password_gen, zip_dir);
-      if (password_test->error_code == ZIP_DOES_NOT_EXIST) {
-      clear && make clean && make && bin/zippass_pthread tests/input003.txt 8
-break;
-      }
-      if (password_test->error_code == INVALID_FILE_DATA) {
-        generate_more_password = false;
-        break;
-      }
-      if (password_test->error_code == FAILED_ALLOCATE_MEMORY) {
-        generate_more_password = false;
-        break;
-      }
-      if (password_test->error_code == ZIP_PROCESSED_SUCESSFULLY) {
-        password = password_gen;
-        generate_more_password = false;
-        printf("%s %s\n", zip_dir, password);
-        break;
-      }
-    }
-    pass_lenght++;
+void free_passwords(char** passwords, uint64_t amout_passwords) {
+  for (uint64_t i = 0; i < amout_passwords; i++) {
+    free(passwords[i]);
   }
+  free(passwords);
+}
 
-  if (password_test->error_code != ZIP_PROCESSED_SUCESSFULLY) {
-    printf("%s\n", zip_dir);
+/*void free_test_pass(struct thread_pass_test* test_data, uint64_t total) {
+  for (uint64_t i = 0; i < total; i++) {
   }
-  free(password_test);
+  free(test_data);
+}
+void free_test_pass(struct thread_pass_test* test_data, uint64_t total) {
+  for (uint64_t i = 0; i < total; i++) {
+  }
+  free(test_data);
 }*/
 
-// Cambiar funcion void
-
-char* generate_password(char* alphabet, int pass_length) {
-  uint64_t total_posible_combination = pow_u(strlen(alphabet), pass_length);
-
-  char** passwords = calloc(total_posible_combination, sizeof(char*));
-  if (!passwords) {
-    return NULL;
-  }
-  for (uint64_t i = 0; i < total_posible_combination; i++) {
-    passwords[i] = calloc(pass_length, sizeof(char));
-    if (!passwords[i]) {
-      for (uint64_t j = 0; j < i; j++) {
-        free(&passwords[j]);
-      }
-      free(passwords);
-    }
-  }
-
-  // Password generation was taken from
-  // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
-
-  char* password_gen = calloc(pass_length + 1, sizeof(char));
-  uint64_t alphabet_index = 0;
-  while (alphabet_index < total_posible_combination) {
-    uint64_t n = alphabet_index;
-    for (int k = 0; k < pass_length; k++) {
-      passwords[alphabet_index][pass_length - k - 1] =
-          alphabet[n % strlen(alphabet)];
-      n /= strlen(alphabet);
-    }
-    alphabet_index++;
-  }
-  return passwords;
-}
 void find_password(struct thread_pass_search_info* thread_info) {
   //  declare num_position :=0
   //  declare password_generated[password_lenght];
@@ -114,46 +40,141 @@ void find_password(struct thread_pass_search_info* thread_info) {
 
   // Threads
   pthread_mutex_t* mutex_pass = malloc(sizeof(pthread_mutex_t));
-  // pthread_mutex_init(mutex_pass, NULL);
+  pthread_mutex_init(mutex_pass, NULL);
 
-  // Semaphore
-  // sem_t semaphore;
-  // sem_init(&semaphore, 0, 0);
+  enum test_code_stats* stat = malloc(sizeof(*stat));
+  *stat = ZIP_NOT_PROCESSED;
+  // This will check password if a zip file is finally processed.
 
-  // Threads
-  pthread_t threads[thread_info->num_threads];
-  bool thread_create[thread_info->num_threads];
-
+  ////////////////////////////////////////////////////////////////////////////////
+  uint64_t pass_length_counter = 1;
   bool generate_more_password = true;
+  // If at problem is found or a password is found, no more passwords
+  // will be generated
 
-  for (uint64_t i = 0; i < thread_info->num_threads; i++) {
-    thread_create[i] = false;
-  }
+  // Static mapping will be used
 
-  uint64_t pass_length_counter = 0;
+  // Password generation was taken from
+  // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
+  while (pass_length_counter <= thread_info->password_length &&
+         generate_more_password) {
+    // This will be used to check if a thread is used.
+    // It's used at join
 
-  while (pass_length_counter <= 3) {
-    char* passwords =
-        generate_password(thread_info->alphabet, pass_length_counter);
-     
+    uint64_t total_combinations =
+        pow_u(strlen(thread_info->alphabet), pass_length_counter);
 
+    // Password will be generated
+    char** passwords = malloc(total_combinations * sizeof(char*));
+    generate_passwords(passwords, thread_info->alphabet, pass_length_counter);
+    if (!passwords) {
+      fprintf(stderr,
+              "Error, failed to allocated dynamic memory\n"
+              "password_handler.c find_passwords()\n");
+      return;
+    }
+
+    // Threads info
+    bool thread_create[thread_info->num_threads];
+    for (uint64_t i = 0; i < thread_info->num_threads; i++) {
+      thread_create[i] = false;
+    }
+
+    // Thread information
+
+    // Thread mapping
+
+    uint64_t amount_passwords_thread =
+        floor(total_combinations / thread_info->num_threads);
+
+    uint64_t num_threads = 0;
+    if (thread_info->num_threads > total_combinations) {
+      num_threads = total_combinations;
+      printf("%" PRIu64 "\n", num_threads);
+    } else {
+      num_threads = thread_info->num_threads;
+      printf("%" PRIu64 "\n", num_threads);
+    }
+
+    struct thread_test_passwords* thread_passwords =
+        malloc(sizeof(*thread_passwords) * num_threads);
+    pthread_t threads[num_threads];
+
+    for (uint64_t i = 0; i < num_threads; i++) {
+      thread_passwords[i].mutex_pass = mutex_pass;
+      thread_passwords[i].pass_is_found = thread_info->pass_is_found;
+      thread_passwords[i].password_file = thread_info->password_file;
+      thread_passwords[i].stat = stat;
+      thread_passwords[i].passwords = passwords;
+      thread_passwords[i].zip_file_dir = thread_info->zip_file_dir;
+
+      uint64_t amount_test_thread = floor(total_combinations * num_threads);
+      thread_passwords[i].start_index =
+          i * amount_passwords_thread +
+          min_val(i, mod_val(total_combinations, num_threads));
+    }
+    for (uint64_t i = 0; i < num_threads; i++) {
+      if ((i + 1) < num_threads) {
+        thread_passwords[i].finish_index = thread_passwords[i + 1].start_index;
+      } else {
+        thread_passwords[i].finish_index = total_combinations;
+      }
+    }
+    for (uint64_t i = 0; i < num_threads; i++) {
+      pthread_create(&threads[i], NULL, (void*)thread_test_passwords,
+                     &thread_passwords[i]);
+    }
+
+    for (uint64_t i = 0; i < num_threads; i++) {
+      // All threads are made
+      pthread_join(threads[i], NULL);
+    }
+
+    if (*stat != ZIP_NOT_PROCESSED) {
+      generate_more_password = false;
+      if (*stat == ZIP_PROCESSED_SUCESSFULLY) {
+        // printf("|%s|\n", thread_passwords[0].password_file);
+        // printf("*%s*\n", thread_info->password_file);
+      }
+    }
+
+    free(thread_passwords);
+    free(passwords);
     pass_length_counter++;
   }
+
+  free(stat);
 }
-// Password generation was taken from
-// https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
 
-// Join
+void generate_passwords(char** passwords, char* alphabet,
+                        uint64_t password_length) {
+  uint64_t total_combinations = pow_u(strlen(alphabet), password_length);
 
-/*for (u_int64_t i = 0; i < thread_info->num_threads; i++) {
-  if (thread_create[i]) {
-    pthread_join(threads[i], NULL);
+  // Password generation was taken from
+  // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
+  for (uint64_t i = 0; i < total_combinations; i++) {
+    passwords[i] = malloc((password_length + 1) *
+                          sizeof(char));  // +1 para el carácter nulo final
+    if (passwords[i] == NULL) {
+      fprintf(stderr, "Error: Failed to allocate memory for passwords");
+      return;
+    }
   }
-}*/
-// pthread_mutex_destroy(mutex_pass);
-//  free(mutex_pass);
-//   free(test_pass);
-/* if (password_test->error_code != ZIP_PROCESSED_SUCESSFULLY) {
-   printf("%s\n", zip_dir);
- }
- free(password_test);*/
+
+  uint64_t password_counter = 0;
+
+  while (password_counter < total_combinations) {
+    uint64_t n = password_counter;
+    char* password = calloc(password_length + 1, sizeof(char));
+    for (uint64_t k = 0; k < password_length; k++) {
+      passwords[password_counter][password_length - k - 1] =
+          alphabet[n % strlen(alphabet)];
+      n /= strlen(alphabet);
+    }
+
+    passwords[password_counter][password_length] = '\0';
+
+    password_counter++;
+    // printf("%s\n",password);
+  }
+}
