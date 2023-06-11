@@ -3,10 +3,11 @@
 /**
  * @file file_handler.c
  * @author Randy Jossué Agüero Bermúdez B90082 randy.aguero@ucr.ac.cr
- * @brief
+ * @brief  This file contains the implementation of methods related to file
+ * handling used in the program.
  *
- * @version 1.0
- * @date 2023-05-17
+ * @version 1.1
+ * @date 2023-06-10
  *
  * @copyright Copyright (c) 2023
  *
@@ -28,7 +29,7 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
   // txt_file will be stored in dynamic memory
 
   if (!txt_file) {
-    fprintf(stderr, "The file could nost be open\n");
+    fprintf(stderr, "Error: The file could not be opened\n");
     return false;
   }
 
@@ -36,18 +37,18 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
   fgets(char_alphabet, MAX_LINE_LENGTH, txt_file);
 
   if (!char_alphabet) {
-    fprintf(stderr, "Error, Could not read the alphabet\n");
+    fprintf(stderr, "Error: Could not read the alphabet\n");
     free(char_alphabet);
     fclose(txt_file);
     return false;
   }
   char_alphabet[strcspn(char_alphabet, "\n")] = '\0';
   file_data->alphabet = char_alphabet;
-
   // "alphabet" will be the characters that can be contained
-  // in a password of an protected ZIP file
+  // in a password of a protected ZIP file
 
   // Read maximum password length from the .txt file
+
   char char_max_password_length[MAX_LINE_LENGTH];
   fgets(char_max_password_length, MAX_LINE_LENGTH, txt_file);
   // declare MAX_PASSWORD_LENGHT = file(read second line)
@@ -66,9 +67,10 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
     return false;
   }
   file_data->max_password_length = max_pass_length;
+
+  // skip blank line from txt file
   char blank_line[MAX_LINE_LENGTH];
   fgets(blank_line, MAX_LINE_LENGTH, txt_file);
-  // skip blank line from txt file
 
   char** zip_directions = calloc(MAX_NUMBER_ZIP_FILES, sizeof(char*));
   char zip_dir[MAX_LINE_LENGTH];
@@ -77,8 +79,8 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
   num_files = 0;
 
   while (fgets(zip_dir, MAX_LINE_LENGTH, txt_file)) {
-    // while (is_not_end_of_line) do zip_files_direccionts =
-    // file(read_zip_direction)
+    // while (is_not_end_of_line) do zip_files_directions =
+    // file (read_zip_direction)
     // num_zip_files : = +1;
 
     zip_directions[num_files] = malloc(strlen(zip_dir) + 1);
@@ -104,52 +106,48 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
 
 void open_file(struct thread_pass_test* test_info) {
   pthread_mutex_lock(test_info->mutex_pass);
-  struct zip* zip_file_data = malloc(sizeof(struct zip*) * 1);
-  zip_file_data = zip_open(test_info->zip_file_dir, 0, NULL);
+  struct zip* zip_file_data = zip_open(test_info->zip_file_dir, 0, NULL);
   if (!zip_file_data) {
     fprintf(stderr, "Error, the zip file %s does not exist\n",
             test_info->zip_file_dir);
 
     *test_info->stat = ZIP_DOES_NOT_EXIST;
-
     pthread_mutex_unlock(test_info->mutex_pass);
     return;
   }
   pthread_mutex_unlock(test_info->mutex_pass);
 
-  // It will analyze if the zip is empty
+  // Check if the zip is empty
   uint64_t num_files = zip_get_num_entries(zip_file_data, 0);
 
   if (!num_files) {
     // The zip file is empty
-    fprintf(stderr, "Error, the zip file %s does not have files\n",
+    fprintf(stderr, "Error: The zip file %s does not have files\n",
             test_info->zip_file_dir);
     pthread_mutex_lock(test_info->mutex_pass);
     *test_info->stat = ZIP_IS_EMPTY;
     pthread_mutex_unlock(test_info->mutex_pass);
-    zip_close(zip_file_data);
+    free(zip_file_data);
     return;
   }
   for (uint64_t i = 0; i < num_files; i++) {
     struct zip_stat file_stat;
     if (zip_stat_index(zip_file_data, i, 0, &file_stat) != 0) {
       fprintf(stderr,
-              "Error the file %s could no be read"
-              " it has invalid data\n",
+              "Error: The file %s could not be read; it has invalid data\n",
               zip_get_name(zip_file_data, i, 0));
       pthread_mutex_lock(test_info->mutex_pass);
       *test_info->stat = INVALID_FILE_DATA;
       pthread_mutex_unlock(test_info->mutex_pass);
-      zip_close(zip_file_data);
+      free(zip_file_data);
       return;
     }
 
-    struct zip_file* file = malloc(sizeof(struct zip_file*));
-
-        file = zip_fopen_index_encrypted(zip_file_data, i, 0, test_info->password);
+    struct zip_file* file =
+        zip_fopen_index_encrypted(zip_file_data, i, 0, test_info->password);
     if (file) {
-      // If the combination of characters
-      // can give access to a protected ZIP file:
+      // If the combination of characters can give access to a protected ZIP
+      // file:
       char* file_content = malloc(file_stat.size);
       if (!file_content) {
         fprintf(stderr, "Error: couldn't allocate memory for the file %s",
@@ -157,7 +155,7 @@ void open_file(struct thread_pass_test* test_info) {
         pthread_mutex_lock(test_info->mutex_pass);
         *test_info->stat = FAILED_ALLOCATE_MEMORY;
         pthread_mutex_unlock(test_info->mutex_pass);
-        zip_close(zip_file_data);
+        free(zip_file_data);
         return;
       }
       char* file_characters = "CI0117-23a";
@@ -167,14 +165,12 @@ void open_file(struct thread_pass_test* test_info) {
       if (char_count > 0) {
         if (strncmp(file_characters, file_content, file_stat.size) == 0) {
           pthread_mutex_lock(test_info->mutex_pass);
-          *test_info->pass_is_found = true;
+          test_info->pass_is_found = true;
           *test_info->stat = ZIP_PROCESSED_SUCESSFULLY;
 
-          // test_info->password_file = malloc(strlen(test_info->password) + 1);
-          // memcpy(test_info->password_file, test_info->password,
-          // strlen(test_info->password) + 1);
-          // printf("%s\n", test_info->password_file);
-          printf("pas_found\n");
+          test_info->password_file = malloc(strlen(test_info->password) + 1);
+          memcpy(test_info->password_file, test_info->password,
+                 strlen(test_info->password) + 1);
           free(file_content);
           zip_fclose(file);
 
@@ -189,5 +185,6 @@ void open_file(struct thread_pass_test* test_info) {
     }
   }
   zip_close(zip_file_data);
+
   return;
 }

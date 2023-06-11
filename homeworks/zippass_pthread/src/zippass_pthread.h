@@ -58,36 +58,45 @@ struct thread_pass_search_info {
 struct thread_pass_test {
   char* password_file;
   char* password;
-  bool* pass_is_found;
+  bool pass_is_found;
   char* zip_file_dir;
   enum test_code_stats* stat;
   pthread_mutex_t* mutex_pass;
 };
 
-// Each thread will have to test a certain amount of passwords
+/**
+ * @brief Structure containing information for testing passwords in a ZIP file
+ * using pthreads.
+ */
+
 struct thread_test_passwords {
-  char** passwords;
-  char* zip_file_dir;
-  char* password_file;
-  uint64_t start_index;
-  uint64_t finish_index;
-  pthread_mutex_t* mutex_pass;
-  enum test_code_stats* stat;
+  char** passwords;     // Array of passwords to test
+  char* zip_file_dir;   // Directory path of the ZIP file
+  char* password_file;  // Password file name
+  uint64_t*
+      thread_id_found_pass;     // Pointer to thread ID where password was found
+  uint64_t thread_id;           // Thread id
+  uint64_t start_index;         // Start index for password testing
+  uint64_t finish_index;        // Finish index for password testing
+  pthread_mutex_t* mutex_pass;  // Mutex for syncronizing password testing
+  enum test_code_stats* stat;   // Pointer to test status codeu
   bool* pass_is_found;
 };
 
+/**
+ * @brief This function tests a range of passwords in a ZIP file using multiple
+ * threads.
+ *
+ * @param test_passwords Pointer to thread_test_passwords structure.
+ */
 void thread_test_passwords(struct thread_test_passwords* test_passwords);
 
 /**
- * @brief generate_zip_password uses a force-brute algorithm to find the correct
- * password for a zip file
+ * @brief Main function for ZIP file password cracking using pthreads.
  *
- * @param password_lenght The maximum posible length of a password
- * @param ALPHABET Posible characters that can be used in a password
- * @param zip_dir The directory of the zip file to be opened
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Error code indicating the success or failure of the program.
  */
-void generate_zip_password(uint64_t* password_lenght, const char* ALPHABET,
-                           const char* zip_dir, const uint64_t num_threads);
-
-// test_code test_password_zip_file(test_password_info pass_info);
+int main(int argc, char* argv[]);
 #endif

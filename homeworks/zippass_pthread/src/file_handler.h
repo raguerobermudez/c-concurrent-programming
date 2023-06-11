@@ -6,8 +6,8 @@
  * @author Randy Jossué Agüero Bermúdez B90082 randy.aguero@ucr.ac.cr
  * @brief
  *
- * @version 1.0
- * @date 2023-05-17
+ * @version 1.1
+ * @date 2023-06-10
  *
  * @copyright Copyright (c) 2023
  *
@@ -36,15 +36,19 @@ typedef struct txt_file_data {
 } txt_file_data;
 
 /**
- * @brief read_txt_file processes txt file
+ * @brief Reads data from a text file.
  *
- * @param file A txt file gived as a program argument
- * @param file_data A variable of type struct txt_file_data
- * @return true If the txt file can be sucesfully read
- * @return false If the txt file is not a valid txt file
+ * @param file The name of the text file.
+ * @param file_data Pointer to a struct to store the read data.
+ * @return bool Returns true if the file is successfully read, false otherwise.
  */
 bool read_txt_file(char* file, struct txt_file_data* file_data);
 
+/**
+ * @brief Opens and analyzes a zip file.
+ *
+ * @param test_info Pointer to a struct containing test information.
+ */
 void open_file(struct thread_pass_test* test_info);
 
 #endif
