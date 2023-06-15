@@ -11,7 +11,11 @@ This program is designed to find the password for a password-protected ZIP file 
 
 The program will read an input file in *.txt format from the standard input, which will include:
 > - An allowed alphabet. For example: "1032ABC". The program will use this alphabet to attempt all possible combinations of characters until it finds the correct password for each ZIP file
+> - A maximum possible password length
 > - A list of ZIP files to unlock.
+
+The program must receive the number of threads to be used. For example "8"
+
 
 The program's output will include the name of each ZIP file and the password found. If a password for a ZIP file is not found, it will be indicated in the output.
 
@@ -46,17 +50,13 @@ The program's output will include the name of each ZIP file and the password fou
 > - File Reading
 > - Error handling in zip files and txt files
 
-### Functionalities not Implemented:
-> - UML diagrams were not created
-> - The program has memory leaks that have not been resolved.
-> - The program takes a long time to generate passwords.
 
 ### Program compilation
-> - Using a terminal, navigate to the project folder (../zippass_serial)".
+> - Using a terminal, navigate to the project folder (../zippass_pthread)".
 > - Use the command 'make' to compile the program".
 ### How to use it:
-> - Using a terminal, and within the project folder (../zippass_serial), type the command:
-"bin/zippass_serial" and add a file that you want to test, for example "tests/input001.txt". For example: bin/zippas_serial tests/input001.txt
+> - Using a terminal, and within the project folder (../zippass_pthread), type the command:
+"bin/zippass_pthread", add a file that you want to test, for example "tests/input001.txt", and add a number of threads For example: bin/zippass_pthread tests/input001.txt 8
 
 ### Credits
 > - This program utilized a code block sourced from
