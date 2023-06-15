@@ -33,11 +33,11 @@ uint64_t pow_u(uint64_t base, uint64_t exp);
 /**
  * @brief Returns the minimum value between two numbers.
  *
- * @param dividend The dividend.
- * @param divisor The divisor.
+ * @param value_2
+ * @param value_2 
  * @return uint64_t The minimum value between dividend and divisor.
  */
-uint64_t min_val(uint64_t dividend, uint64_t divisor);
+uint64_t min_val(uint64_t value_1, uint64_t value_2);
 
 /**
  * @brief Returns the remainder of a division operation.
