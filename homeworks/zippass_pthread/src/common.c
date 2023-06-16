@@ -31,7 +31,7 @@ uint64_t min_val(uint64_t value_1, uint64_t value_2) {
   } else {
     return value_2;
   }
-};
+}
 
 uint64_t mod_val(uint64_t dividend, uint64_t divisor) {
   if (divisor == 0) {

@@ -35,7 +35,8 @@ int main(int argc, char* argv[]) {
   if (argc != 3) {
     fprintf(stderr,
             "Error, you must include a .txt file as argument and a number of "
-            "threads (It has to be integer greater than 0\n");
+            "threads (It has to be integer greater than 0, argc = %d\n",
+            argc);
     error_code = INVALID_ARGUMENTS;
     return error_code;
   }

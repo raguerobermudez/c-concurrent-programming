@@ -11,7 +11,6 @@
 
 #include "passwords_handler.h"
 
-
 void free_passwords(char** passwords, uint64_t amout_passwords) {
   for (uint64_t i = 0; i < amout_passwords; i++) {
     free(passwords[i]);
@@ -26,8 +25,7 @@ void generate_passwords(char** passwords, char* alphabet,
   // Password generation was taken from
   // https://stackoverflow.com/questions/23044184/c-or-c-combination-with-repetition
   for (uint64_t i = 0; i < total_combinations; i++) {
-    passwords[i] = malloc((password_length + 1) *
-                          sizeof(char)); 
+    passwords[i] = malloc((password_length + 1) * sizeof(char));
     if (passwords[i] == NULL) {
       fprintf(stderr, "Error: Failed to allocate memory for passwords.");
       return;
