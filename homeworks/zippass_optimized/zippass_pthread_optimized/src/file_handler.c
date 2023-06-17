@@ -188,7 +188,7 @@ void open_file(struct thread_pass_test* test_info) {
         }
         free(file_content);
       }
-      
+      pthread_mutex_lock(test_info->mutex_pass);
       if(*test_info->stat != ZIP_NOT_PROCESSED){
         test_more_passwords = false;
       }
