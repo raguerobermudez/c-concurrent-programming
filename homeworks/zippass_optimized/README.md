@@ -6,4 +6,4 @@
 -  <em>Randy Jossué Agüero Bermúdez</em>, Studend card: <em>B90082</em>, email address: <em>randy.aguero@ucr.ac.cr </em>
 
 ## Report
-- [Report:](#report/report.md)
+- [Report:](report/report.md)

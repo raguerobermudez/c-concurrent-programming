@@ -1,4 +1,4 @@
-# Homework 01: zippass_dynamic
+# Homework 03: zippass_dynamic
 
 ## CI-0117 Programación Paralela y Concurrente
 
