@@ -93,7 +93,7 @@ void thread_test_passwords(struct thread_test_passwords* test_passwords) {
   pass_test->total_passwords = test_passwords->total_passwords;
   // uint64_t password_counter = test_passwords->start_index;
   open_file(pass_test);
-   
+
   if (*pass_test->pass_is_found) {
     pthread_mutex_lock(test_passwords->mutex_pass);
     *test_passwords->thread_id_found_pass = test_passwords->thread_id;

@@ -66,7 +66,6 @@ struct thread_pass_test {
 
   uint64_t* pass_counter;
   uint64_t total_passwords;
-
 };
 
 /**

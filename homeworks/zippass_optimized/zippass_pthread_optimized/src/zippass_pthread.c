@@ -81,7 +81,6 @@ int main(int argc, char* argv[]) {
 }
 
 void thread_test_passwords(struct thread_test_passwords* test_passwords) {
-
   bool* pass_is_found = malloc(sizeof(*pass_is_found));
   *pass_is_found = false;
 
@@ -90,13 +89,13 @@ void thread_test_passwords(struct thread_test_passwords* test_passwords) {
   pass_test->pass_is_found = pass_is_found;
   pass_test->password_file = NULL;
   pass_test->stat = test_passwords->stat;
-    pass_test->zip_file_dir = test_passwords->zip_file_dir;
-   pass_test->finish_index = test_passwords->finish_index;
-   pass_test->passwords = test_passwords->passwords;
-   pass_test->start_index = test_passwords->start_index;
-  //Optimization changes
+  pass_test->zip_file_dir = test_passwords->zip_file_dir;
+  pass_test->finish_index = test_passwords->finish_index;
+  pass_test->passwords = test_passwords->passwords;
+  pass_test->start_index = test_passwords->start_index;
+  // Optimization changes
 
- open_file(pass_test);
+  open_file(pass_test);
 
   if (*pass_is_found) {
     pthread_mutex_lock(test_passwords->mutex_pass);

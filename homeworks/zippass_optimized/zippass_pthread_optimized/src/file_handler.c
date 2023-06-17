@@ -144,8 +144,7 @@ void open_file(struct thread_pass_test* test_info) {
     }
     bool test_more_passwords = true;
     uint64_t password_counter = test_info->start_index;
-    while (password_counter < test_info->finish_index &&
-           test_more_passwords) {
+    while (password_counter < test_info->finish_index && test_more_passwords) {
       struct zip_file* file = zip_fopen_index_encrypted(
           zip_file_data, i, 0, test_info->passwords[password_counter]);
       if (file) {
@@ -189,7 +188,7 @@ void open_file(struct thread_pass_test* test_info) {
         free(file_content);
       }
       pthread_mutex_lock(test_info->mutex_pass);
-      if(*test_info->stat != ZIP_NOT_PROCESSED){
+      if (*test_info->stat != ZIP_NOT_PROCESSED) {
         test_more_passwords = false;
       }
       pthread_mutex_unlock(test_info->mutex_pass);

@@ -56,9 +56,9 @@ struct thread_pass_search_info {
 };
 
 struct thread_pass_test {
-  char** passwords;     // Array of passwords to test
-  char* zip_file_dir;   // Directory path of the ZIP file
-  char* password_file;  // Password file name  
+  char** passwords;             // Array of passwords to test
+  char* zip_file_dir;           // Directory path of the ZIP file
+  char* password_file;          // Password file name
   uint64_t start_index;         // Start index for password testing
   uint64_t finish_index;        // Finish index for password testing
   pthread_mutex_t* mutex_pass;  // Mutex for syncronizing password testing
