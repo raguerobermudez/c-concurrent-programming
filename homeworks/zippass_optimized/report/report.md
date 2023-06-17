@@ -86,22 +86,36 @@
   
   <img src="test_dynamic/cuadro_dynamic.png" width="650">
   
-- En esta optimización se encontró una positiva mejoría en los tiempos de ejecución, sobre todo en los casos de prueba más grandes. Por ejemplo, aunque no fue incluida dentro de las pruebas en la prueba input006.txt se obtuvo una mejoría de 30 segundos que la versión optimizada usando mapeo estático por bloques.
+- En esta optimización se encontró una positiva mejoría en los tiempos de ejecución, sobre todo en los casos de prueba más grandes.
   
 - Las razones pueden ser diferentes, hay que destacar que se parte de una versión ya optimizada en la optimización: `zippass_pthread_optimized`, por lo cual algunos segundos de mejora se deben a usar la versión optimizada.
   
--  Como comentario, aunque no se guardaron las implementaciones ni los test, se implementó inicialmente el mapeo dinamico usando la versión no optimizada de zippass_pthread, la cual, como se indicó anteriomente: <em>"cada contraseña a probar tenía que abrir todo el archivo zip antes de intentar desencriptar la contraseña"</em>; en esa versión se tenían peores resultados que la versión no optimizada usando mapeo estático por bloques.
+- La mejora se puede dar por la posilidad que un hilo que esté desocupado realize las tareas del programa cuando los otros hilos están ocupados
+    
 
-- Es interesante destacar que para casos de pruebas pequeños como el de `input000.txt` los tiempos de ejecución no parecen ser más positivos, pero sí en los más grandes.
- 
-- La razón por la cual el mapeo dinámico puede ser más eficiente en casos de pruebas grandes, es que al haber contraseñas más largas, los hilos se reparten muchas más contraseñas, y como el sistema operativo debe usar los hilos para otras tareas, algunos hilos pueden terminar antes que otros, los cuales tendrán que esperar a los demás sin poder ayudar en el procesamiento de contraseña. Por eso el tener todas las contraseñas disponibles para todos los hilos, cualquier hilo que esté desocupado podría realizar las tareas necesarias si los demás hilos están ocupados, mejorando así los tiempos de ejecución.
   
 #### Comparación de optimizaciónes
 - En el siguiente cuadro se compara los incrementos de velocidad según las diferentes optimizaciones realizadas anteriormente: 
 
   <img src="comparisons/cuadro_comp.png" width="750">
 
-- En estos casos, se muestra que la diferencia entre la versión no optimizada de pthreads
+- En estos casos, se muestra que la diferencia entre la versión no optimizada de pthreads y la que si no es grande, aún así se puede notar que la mejor optimización fue la de mapeo dinámico, porque, en casos de pruebas grandes tuvo mejor tiempos de ejecución
+
+  <img src="comparisons/cuadro2_comp.png" width="750">
+
+
+- Se puede observar que la versión optimizada de pthreads es la que presenta mejor relación velocidad/eficiencia.
+
+ -  Como comentario, aunque no se guardaron las implementaciones ni los test, se implementó inicialmente el mapeo dinamico usando la versión no optimizada de zippass_pthread, la cual, como se indicó anteriomente: <em>"cada contraseña a probar tenía que abrir todo el archivo zip antes de intentar desencriptar la contraseña"</em>; en esa versión se tenían peores resultados que la versión no optimizada usando mapeo estático por bloques.
+
+- Es interesante destacar que para casos de pruebas pequeños como el de `input000.txt` los tiempos de ejecución no parecen ser más positivos con el uso de mapeo dinámico, pero sí en los más grandes.
+ 
+- La razón por la cual el mapeo dinámico puede ser más eficiente en casos de pruebas grandes, es que al haber contraseñas más largas, los hilos se reparten muchas más contraseñas, y como el sistema operativo debe usar los hilos para otras tareas, algunos hilos pueden terminar antes que otros, ´los cuales tendrán que esperar a los demás sin poder ayudar en el procesamiento de contraseña. Por eso el tener todas las contraseñas disponibles para todos los hilos, cualquier hilo que esté desocupado podría realizar las tareas necesarias si los demás hilos están ocupados, mejorando así los tiempos de ejecución
+
+- Por lo cual, la versión de mapeo dinámico es la mejor versión para ser usada en un contexto real, ya que presenta mejores tiempo de ejecución.
 
 #### Comparación de grados de concurrencia
 
+  <img src="test_concurrency/comp_conc.png" width="250">
+
+  <img src="test_concurrency/test_conc.png" width="250">
