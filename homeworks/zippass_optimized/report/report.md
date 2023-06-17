@@ -8,6 +8,7 @@
 
 #### Partes del programa
 
+
 - [Tarea 03: zippass\_optimized](#tarea-03-zippass_optimized)
   - [CI-0117 Programación Paralela y Concurrente](#ci-0117-programación-paralela-y-concurrente)
   - [Estudiante:](#estudiante)
@@ -17,6 +18,7 @@
       - [Optimización zippass\_dynamic](#optimización-zippass_dynamic)
       - [Comparación de optimizaciónes](#comparación-de-optimizaciónes)
       - [Comparación de grados de concurrencia](#comparación-de-grados-de-concurrencia)
+      - [Análisis de resultados](#análisis-de-resultados)
 
 
 #### Optimización zippass_serial
@@ -115,7 +117,17 @@
 - Por lo cual, la versión de mapeo dinámico es la mejor versión para ser usada en un contexto real, ya que presenta mejores tiempo de ejecución.
 
 #### Comparación de grados de concurrencia
+- En el siguiente cuadro se observa como decrece la rapidez del descrifrado de archivos zip al usar más nucleos que los incorporados en el CPU (4).
 
   <img src="test_concurrency/comp_conc.png" width="250">
 
-  <img src="test_concurrency/test_conc.png" width="250">
+ - A partir de los 4 nucleos no se observa mejoría, aunque no afecta drásticamente el tiempo de ejecución del programa, si indica que no es conveniente usar más de 4 hilos para procesar los archivos
+
+  <img src="test_concurrency/test_conc.png" width="500">
+
+- En esta imagen se muestra que entre más hilos más ineficiente es el programa, por lo cual con 4 hilos es lo máximo que se recomendaría usar en la computadora usada.
+- Posiblemente el programa se vuelve más ineficiente por bloque de variables, por mutex, control del sistema operativo entre otras.
+  
+#### Análisis de resultados
+
+- Se puede concluir que la implementación del programa usando mapeo dinámico y no más de 4 hilos es la opción más eficiente
