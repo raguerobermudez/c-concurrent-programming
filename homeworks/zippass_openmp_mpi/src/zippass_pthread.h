@@ -28,10 +28,11 @@
 #define MAX_NUMBER_ZIP_FILES 100
 
 typedef enum program_error_code {
+  NO_ERROR,
   INVALID_ARGUMENTS,
   INVALID_TXT_FILE,
-  ERROR_DINAMIC_MEMORY,
-  NO_ERROR
+  ERROR_DINAMIC_MEMORY
+  
 } program_error_code;
 
 enum test_code_stats {
@@ -53,6 +54,21 @@ struct thread_pass_search_info {
   bool* pass_is_found;
   char* zip_file_dir;
   enum test_code_stats stat;
+};
+
+/*typedef struct txt_file_data {
+  char* alphabet;
+  uint64_t max_password_length;
+  uint64_t num_of_zip_files;
+  char** zip_files_directions;
+} txt_file_data;
+*/
+struct process_zip_data{
+  char* alphabet;
+  uint64_t max_password_length;
+  uint64_t num_of_zip_files;
+  char* zip_file_dir;
+  char* zip_file_pass;
 };
 
 struct thread_pass_test {

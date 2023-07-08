@@ -14,6 +14,7 @@
 #include "zippass_pthread.h"
 
 #include <inttypes.h>
+#include <mpi.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,56 +26,111 @@
 
 int main(int argc, char* argv[]) {
   program_error_code error_code = 0;
+  txt_file_data txt_file;
+  uint32_t number_threads = 0;
+  struct process_zip_data* process_data;
 
-  // Input verification
+  int rank;
+  int size;
 
-  /* if(num_args = 2) then
-    declare file_txt := read_txt_file(argument[1])
-  */
-  if (argc != 3) {
-    fprintf(stderr,
-            "Error, you must include a .txt file as argument and a number of "
-            "threads (It has to be integer greater than 0\n");
-    error_code = INVALID_ARGUMENTS;
-    return error_code;
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  if (rank == 0) {
+    if (argc != 3) {
+      fprintf(stderr,
+              "Error, you must include a .txt file as argument and a number of "
+              "threads (It has to be integer greater than 0\n");
+      error_code = INVALID_ARGUMENTS;
+      return error_code;
+    }
   }
+  MPI_Bcast(&error_code, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Number of threads
 
-  uint32_t number_threads = 0;
-  number_threads = atoi(argv[2]);
-  if (number_threads < 1) {
-    fprintf(stderr,
-            "Error, The number of threads must be greater than 0, Default "
-            "system number of threads will be used\n");
-    // If the number of threads is less than 1, use the default number of
-    // threads provided by the system
-    number_threads = sysconf(_SC_NPROCESSORS_ONLN);
-  }
-  // Input file read
-
-  txt_file_data txt_file;
-  if (!read_txt_file(argv[1], &txt_file)) {
-    error_code = INVALID_TXT_FILE;
-    return error_code;
-  }
-  // Search for passwords
-
-  error_code = search_zip_passwords(number_threads, &txt_file);
-
-  for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
-    if (txt_file.zip_files_directions[i]) {
-      free(txt_file.zip_files_directions[i]);
+  if (rank == 0) {
+    number_threads = atoi(argv[2]);
+    if (number_threads < 1) {
+      fprintf(stderr,
+              "Error, The number of threads must be greater than 0, Default "
+              "system number of threads will be used\n");
+      // If the number of threads is less than 1, use the default number of
+      // threads provided by the system
+      number_threads = sysconf(_SC_NPROCESSORS_ONLN);
     }
   }
-  if (txt_file.zip_files_directions) {
-    free(txt_file.zip_files_directions);
+  MPI_Bcast(&number_threads, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  // Input file read
+
+  if (rank == 0) {
+    if (!read_txt_file(argv[1], &txt_file)) {
+      error_code = INVALID_TXT_FILE;
+      return error_code;
+    }
+
+    process_data = malloc(sizeof(*process_data) * txt_file.num_of_zip_files);
+    if (!process_data) {
+      fprintf(stderr,
+              "Error, could not allocate dynamic memory\n"
+              "zippass_pthread.c main\n");
+      error_code = ERROR_DINAMIC_MEMORY;
+    }
+  }
+  MPI_Bcast(&error_code, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  // Search for passwords
+
+  if (rank == 0) {
+    // Rank
+    for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
+      process_data[i].alphabet = txt_file.alphabet;
+      process_data[i].max_password_length = txt_file.max_password_length;
+      process_data[i].num_of_zip_files = 1;
+      process_data[i].zip_file_dir = txt_file.zip_files_directions[i];
+      process_data[i].zip_file_pass = NULL;
+    }
   }
 
-  if (txt_file.alphabet) {
-    free(txt_file.alphabet);
+  // TODO: (YOU) Distribute
+  if (rank == 0) {
+    for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
+      error_code = search_zip_passwords(number_threads, &process_data[i]);
+    }
   }
 
+  // Exit distribution
+
+  if (rank == 0) {
+    for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
+      if (process_data[i].zip_file_pass) {
+        printf("%s %s\n", process_data[i].zip_file_dir,
+               process_data[i].zip_file_pass);
+      } else {
+        printf("%s\n", process_data[i].zip_file_dir);
+      }
+    }
+
+    for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
+      if (txt_file.zip_files_directions[i]) {
+        free(txt_file.zip_files_directions[i]);
+      }
+      if (process_data[i].zip_file_pass) {
+        free(process_data[i].zip_file_pass);
+      }
+    }
+    if (txt_file.zip_files_directions) {
+      free(txt_file.zip_files_directions);
+    }
+
+    if (txt_file.alphabet) {
+      free(txt_file.alphabet);
+    }
+    if (process_data) {
+      free(process_data);
+    }
+  }
+  MPI_Finalize();
   return error_code;
 }
 
