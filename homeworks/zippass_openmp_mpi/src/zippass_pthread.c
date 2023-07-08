@@ -14,50 +14,35 @@
 #include "zippass_pthread.h"
 
 #include <inttypes.h>
-#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "file_handler.h"
 #include "zip_handler.h"
 
 int main(int argc, char* argv[]) {
-  int rank, size;
   program_error_code error_code = 0;
-
-  // Inicializar MPI
-  MPI_Init(&argc, &argv);
-
-  // Obtener el rango y el tamaño del comunicador
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-  char filename[MAX_LINE_LENGTH];
-
-  // Solo el proceso raíz (rango 0) manejará la entrada
-  if (rank == 0) {
-    printf("Enter the filename: ");
-    scanf("%s", filename);
-    getchar();  // Consumir el carácter de nueva línea del búfer de entrada
-  }
-
-  // Compartir el nombre del archivo a todos los procesos
-  MPI_Bcast(filename, MAX_LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-  uint32_t number_threads = 0;
-  if (rank == 0) {
-    printf("Enter the number of threads: ");
-    scanf("%u", &number_threads);
-    getchar();  // Consumir el carácter de nueva línea del búfer de entrada
-  }
-
-  // Compartir el número de hilos a todos los procesos
-  MPI_Bcast(&number_threads, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
   // Input verification
 
+  /* if(num_args = 2) then
+    declare file_txt := read_txt_file(argument[1])
+  */
+  if (argc != 3) {
+    fprintf(stderr,
+            "Error, you must include a .txt file as argument and a number of "
+            "threads (It has to be integer greater than 0\n");
+    error_code = INVALID_ARGUMENTS;
+    return error_code;
+  }
+
+  // Number of threads
+
+  uint32_t number_threads = 0;
+  number_threads = atoi(argv[2]);
   if (number_threads < 1) {
     fprintf(stderr,
             "Error, The number of threads must be greater than 0, Default "
@@ -66,47 +51,20 @@ int main(int argc, char* argv[]) {
     // threads provided by the system
     number_threads = sysconf(_SC_NPROCESSORS_ONLN);
   }
-
   // Input file read
 
   txt_file_data txt_file;
-  if (!read_txt_file(filename, &txt_file)) {
+  if (!read_txt_file(argv[1], &txt_file)) {
     error_code = INVALID_TXT_FILE;
-    MPI_Finalize();
     return error_code;
   }
-
-  // Dividir la cantidad de archivos entre los procesos
-  uint64_t num_files_per_process = txt_file.num_of_zip_files / size;
-  uint64_t start_entry = rank * num_files_per_process;
-  uint64_t end_entry = (rank == size - 1) ? txt_file.num_of_zip_files
-                                          : start_entry + num_files_per_process;
-
   // Search for passwords
 
-  for (uint64_t i = start_entry; i < end_entry; i++) {
-    error_code = search_zip_passwords(number_threads, &txt_file, i);
-  }
-
-  // Recopilar los resultados de todos los procesos
-  MPI_Barrier(MPI_COMM_WORLD);
-  system("clear");
-  if (rank == 0) {
-    for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
-     if(txt_file.zip_passwords[i]){
-      printf("%s %s\n", txt_file.zip_files_directions[i], txt_file.zip_passwords[i]);
-     }else{
-      printf("%s\n", txt_file.zip_files_directions[i]);
-     }
-    }
-  }
+  error_code = search_zip_passwords(number_threads, &txt_file);
 
   for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
     if (txt_file.zip_files_directions[i]) {
       free(txt_file.zip_files_directions[i]);
-    }
-    if(txt_file.zip_passwords[i]){
-      free(txt_file.zip_passwords[i]);
     }
   }
   if (txt_file.zip_files_directions) {
@@ -117,9 +75,6 @@ int main(int argc, char* argv[]) {
     free(txt_file.alphabet);
   }
 
-  // Finalizar MPI
-  MPI_Finalize();
-
   return error_code;
 }
 
@@ -127,7 +82,6 @@ void thread_test_passwords(struct thread_test_passwords* test_passwords) {
   bool* pass_is_found = malloc(sizeof(*pass_is_found));
   *pass_is_found = false;
   struct thread_pass_test* pass_test = malloc(sizeof(*pass_test));
-  pass_test->mutex_pass = test_passwords->mutex_pass;
   pass_test->pass_is_found = pass_is_found;
   pass_test->password_file = NULL;
   pass_test->stat = test_passwords->stat;

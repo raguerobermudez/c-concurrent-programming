@@ -73,7 +73,6 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
   fgets(blank_line, MAX_LINE_LENGTH, txt_file);
 
   char** zip_directions = calloc(MAX_NUMBER_ZIP_FILES, sizeof(char*));
- 
   char zip_dir[MAX_LINE_LENGTH];
 
   uint64_t num_files = 0;
@@ -101,7 +100,6 @@ bool read_txt_file(char* file, struct txt_file_data* file_data) {
     return false;
   }
   file_data->num_of_zip_files = num_files;
-  file_data->zip_passwords = malloc(num_files*sizeof(char*)); 
   fclose(txt_file);
   return true;
 }

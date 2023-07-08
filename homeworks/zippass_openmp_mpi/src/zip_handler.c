@@ -23,8 +23,6 @@ enum program_error_code generate_zip_file_data(
     return ERROR_DINAMIC_MEMORY;
   }
 
-
-
   for (uint64_t i = 0; i < num_zip_files; i++) {
     // Allocate memory for zip_files_dir[i] and copy the directory
     zip_passwords->zip_files_dir[i] =
@@ -65,7 +63,7 @@ enum program_error_code generate_zip_file_data(
 }
 
 program_error_code search_zip_passwords(uint32_t num_threads,
-                                        txt_file_data* txt_data,uint64_t zip_number) {
+                                        txt_file_data* txt_data) {
   program_error_code error_code = 0;
 
   // Save passwords for each zip_file
@@ -81,8 +79,8 @@ program_error_code search_zip_passwords(uint32_t num_threads,
 
   // Generate the necessary data for the ZIP files
   error_code =
-      generate_zip_file_data(zips_passwords, 1,
-                             &txt_data->zip_files_directions[zip_number]);
+      generate_zip_file_data(zips_passwords, txt_data->num_of_zip_files,
+                             txt_data->zip_files_directions);
   if (error_code == ERROR_DINAMIC_MEMORY) {
     if (zips_passwords) {
       free(zips_passwords);
@@ -91,7 +89,7 @@ program_error_code search_zip_passwords(uint32_t num_threads,
   }
 
   struct thread_pass_search_info* thread_info =
-      malloc(sizeof(*thread_info));
+      malloc(sizeof(*thread_info) * txt_data->num_of_zip_files);
   if (!thread_info) {
     fprintf(
         stderr,
@@ -100,33 +98,32 @@ program_error_code search_zip_passwords(uint32_t num_threads,
     free_zips_passwords(zips_passwords, txt_data);
     return ERROR_DINAMIC_MEMORY;
   }
-  
-thread_info->alphabet = txt_data->alphabet;
-  thread_info->pass_is_found = &zips_passwords->zip_password_found[0];
-  thread_info->password_file = NULL;
-  thread_info->password_length = txt_data->max_password_length;
-  thread_info->zip_file_dir = zips_passwords->zip_files_dir[0];
-  thread_info->stat = ZIP_NOT_PROCESSED;
-  thread_info->num_threads = zips_passwords->num_threads;
+  for (uint64_t i = 0; i < txt_data->num_of_zip_files; i++) {
+    thread_info[i].alphabet = txt_data->alphabet;
+    thread_info[i].pass_is_found = &zips_passwords->zip_password_found[i];
+    thread_info[i].password_file = NULL;
+    thread_info[i].password_length = txt_data->max_password_length;
+    thread_info[i].zip_file_dir = zips_passwords->zip_files_dir[i];
+    thread_info[i].stat = ZIP_NOT_PROCESSED;
+    thread_info[i].num_threads = zips_passwords->num_threads;
 
-    find_password(thread_info);
-  
+    find_password(&thread_info[i]);
+  }
 
- 
-    if (*thread_info->pass_is_found) {
-      txt_data->zip_passwords[zip_number] = malloc(sizeof(char*));
-      txt_data->zip_passwords[zip_number] =
-          malloc(strlen(thread_info->password_file) + 1);
-      memcpy(txt_data->zip_passwords[zip_number], thread_info->password_file,
-             strlen(thread_info->password_file) + 1);
-    } 
-  
-
- 
-    if (thread_info->password_file) {
-      free(thread_info->password_file);
+  for (uint64_t i = 0; i < txt_data->num_of_zip_files; i++) {
+    if (*thread_info[i].pass_is_found) {
+      printf("%s %s\n", thread_info[i].zip_file_dir,
+             thread_info[i].password_file);
+    } else {
+      printf("%s\n", thread_info[i].zip_file_dir);
     }
-  
+  }
+
+  for (uint64_t i = 0; i < txt_data->num_of_zip_files; i++) {
+    if (thread_info[i].password_file) {
+      free(thread_info[i].password_file);
+    }
+  }
 
   if (thread_info) {
     free(thread_info);
@@ -137,9 +134,6 @@ thread_info->alphabet = txt_data->alphabet;
 }
 
 void find_password(struct thread_pass_search_info* thread_info) {
-  // Thread mutex
-  pthread_mutex_t* mutex_pass = malloc(sizeof(pthread_mutex_t));
-  pthread_mutex_init(mutex_pass, NULL);
 
   enum test_code_stats* stat = malloc(sizeof(*stat));
   *stat = ZIP_NOT_PROCESSED;
@@ -169,8 +163,6 @@ void find_password(struct thread_pass_search_info* thread_info) {
               "Function find_password() in password_handler.c\n");
       free(thread_id_found_pass);
       free(stat);
-      pthread_mutex_destroy(mutex_pass);
-      free(mutex_pass);
       return;
     }
 
@@ -186,7 +178,6 @@ void find_password(struct thread_pass_search_info* thread_info) {
 
     struct thread_test_passwords* thread_passwords =
         malloc(sizeof(*thread_passwords) * num_threads);
-    pthread_t threads[num_threads];
 
     uint64_t* pass_counter = malloc(sizeof(uint64_t));
     *pass_counter = 0;
@@ -195,7 +186,7 @@ void find_password(struct thread_pass_search_info* thread_info) {
     *start_test = false;
 
     for (uint64_t i = 0; i < num_threads; i++) {
-      thread_passwords[i].mutex_pass = mutex_pass;
+      
       thread_passwords[i].pass_is_found = thread_info->pass_is_found;
       thread_passwords[i].password_file = NULL;
       thread_passwords[i].stat = stat;
@@ -242,16 +233,12 @@ void find_password(struct thread_pass_search_info* thread_info) {
         free(thread_passwords[i].password_file);
       }
     }
-
     free(thread_passwords);
-
     free(pass_counter);
     free(start_test);
     free_passwords(passwords, total_combinations);
     pass_length_counter++;
   }
-  pthread_mutex_destroy(mutex_pass);
-  free(mutex_pass);
   free(thread_id_found_pass);
   free(stat);
 }
@@ -261,7 +248,7 @@ void free_zips_passwords(struct zip_files_passwords* zips_passwords,
   if (zips_passwords->zip_password_found) {
     free(zips_passwords->zip_password_found);
   }
-  for (uint64_t i = 0; i < 1; i++) {
+  for (uint64_t i = 0; i < txt_data->num_of_zip_files; i++) {
     if (zips_passwords->files_passwords[i]) {
       free(zips_passwords->files_passwords[i]);
     }

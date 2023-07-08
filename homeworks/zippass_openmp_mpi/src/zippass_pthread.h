@@ -13,9 +13,7 @@
  *
  */
 #include <inttypes.h>
-#include <mpi.h>
 #include <omp.h>
-#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,11 +28,10 @@
 #define MAX_NUMBER_ZIP_FILES 100
 
 typedef enum program_error_code {
-  NO_ERROR,
   INVALID_ARGUMENTS,
   INVALID_TXT_FILE,
-  ERROR_DINAMIC_MEMORY
-
+  ERROR_DINAMIC_MEMORY,
+  NO_ERROR
 } program_error_code;
 
 enum test_code_stats {
@@ -65,7 +62,6 @@ struct thread_pass_test {
 
   char* zip_file_dir;
   enum test_code_stats* stat;
-  pthread_mutex_t* mutex_pass;
 
   uint64_t* pass_counter;
   uint64_t total_passwords;
@@ -86,7 +82,6 @@ struct thread_test_passwords {
   uint64_t* pass_counter;
   bool* star_test;
   uint64_t total_passwords;
-  pthread_mutex_t* mutex_pass;  // Mutex for syncronizing password testing
   enum test_code_stats* stat;   // Pointer to test status codeu
   bool* pass_is_found;
 };

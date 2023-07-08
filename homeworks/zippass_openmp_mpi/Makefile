@@ -1,6 +1,6 @@
 include ../../../common/Makefile
-CC=mpicc
+
 LIBS=-lzip
-FLAG += -fopenmp	
+FLAG+=-fopenmp
 FLAG += -pthread
 

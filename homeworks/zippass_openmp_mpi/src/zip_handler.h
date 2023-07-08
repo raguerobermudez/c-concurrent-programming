@@ -71,8 +71,7 @@ void test_password(struct thread_test_pass_stats* test_data);
  */
 
 enum program_error_code search_zip_passwords(uint32_t num_threads,
-                                             struct txt_file_data* txt_file,
-                                             uint64_t zip_number);
+                                             struct txt_file_data* txt_file);
 
 /**
  * @brief Frees the allocated memory for zip files passwords data

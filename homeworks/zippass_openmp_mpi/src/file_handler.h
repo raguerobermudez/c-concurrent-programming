@@ -16,7 +16,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <mpi.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -34,7 +33,6 @@ typedef struct txt_file_data {
   uint64_t max_password_length;
   uint64_t num_of_zip_files;
   char** zip_files_directions;
-  char** zip_passwords;
 } txt_file_data;
 
 /**
