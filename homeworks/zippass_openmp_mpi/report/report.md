@@ -1,0 +1,33 @@
+ 
+# Tarea 03: zippass_optimized
+
+## CI-0117 Programación Paralela y Concurrente
+
+## Estudiante:
+-  <em>Randy Jossué Agüero Bermúdez</em>, Studend card: <em>B90082</em>, email address: <em>randy.aguero@ucr.ac.cr </em>
+
+#### Partes del programa
+
+
+- [Tarea 03: zippass\_optimized](#tarea-03-zippass_optimized)
+  - [CI-0117 Programación Paralela y Concurrente](#ci-0117-programación-paralela-y-concurrente)
+  - [Estudiante:](#estudiante)
+      - [Partes del programa](#partes-del-programa)
+      - [Optimización zippass\_serial](#optimización-zippass_serial)
+      - [Optimización zippass\_pthread](#optimización-zippass_pthread)
+      - [Optimización zippass\_dynamic](#optimización-zippass_dynamic)
+      - [Comparación de optimizaciónes](#comparación-de-optimizaciónes)
+      - [Comparación de grados de concurrencia](#comparación-de-grados-de-concurrencia)
+      - [Análisis de resultados](#análisis-de-resultados)
+
+  
+#### Comparación de optimizaciónes
+- En el siguiente cuadro se compara las velocidads según las diferentes versiones del programa usando pthreads y OpenMP, en la prueba input005.txt
+
+  <img src="comparisons/cuadro_comp.png" width="750">
+
+- En la implementación del programa no se encontró diferencia significativa entre OpenMp, la implementación de paralelismo usando Pthread y OpenMP no es muy diferente entre sí, realmente lo que beneficia más los tiempo de búsqueda de contraseñas es la forma de mapeo para seleccionar la contraseña a usar. En la implementación realizada, cada thread analiza una contraseña usando un contraseña, que de cierta manera, simula una pila. Realmente el uso de paralelismo en el proyecto no es complicado como para decir que usar OpenMP pueda ser perjudicial al dejar que OpenMP realize las implementaciónes, perdiendo control sobre la contraseñas. En este trabajo el uso de concurrencia es muy simple como para considerar que puedan existir diferencias entre un trabajo implementado por Pthread u OpenMP.
+
+#### Análisis de resultados
+
+- Se puede concluir que el uso de OpenMP presenta ventajas principalmente a la hora de implementar, ya que, aunque el programador presenta más control usando pthreads, esa misma ventaja puede funcionar en contra si no se toman las precausiones que pueden provocar problemas

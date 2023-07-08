@@ -209,7 +209,7 @@ void find_password(struct thread_pass_search_info* thread_info) {
 
 #pragma omp parallel num_threads(num_threads)
     {
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
       for (uint64_t i = 0; i < num_threads; i++) {
         thread_test_passwords(&thread_passwords[i]);
       }
