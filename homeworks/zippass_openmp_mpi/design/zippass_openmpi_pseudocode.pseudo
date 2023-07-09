@@ -6,9 +6,13 @@ procedure main (num_args, argument[]):
         // Read a .txt file
         //Read num of threads
         declare num_threads := argument[2]
+
+        Init Distribution
+
+        Distribute each zip file to one process
          seach_zips_passwords(file_txt,num_threads)
 
-         
+         Finalize Distribution
 
 
 procedure read_txt_file:
@@ -63,8 +67,6 @@ Procedure search_zips_passwords(txt data)
 
 Procedure find_password(structure thread_pass_search_info thread_info)
 
-    declare pthread_mutex_t* mutex_pass := allocate memory for pthread_mutex_t structure
-
     declare uint64_t pass_length_counter := 1
     declare bool generate_more_password := true
 
@@ -75,15 +77,14 @@ Procedure find_password(structure thread_pass_search_info thread_info)
         uint64_t total_combinations := pow_u(alphabet, pass_length_counter)
         char** passwords :=  generate_passwords(passwords, alphabet, pass_length_counter)
         declare  thread_passwords[num_threads] := structure thread_test_passwords
-        FOR i := 0 to num_threads - 1 DO
-            thread_passwords[i].mutex_pass := mutex_pass
-            thread_passwords[i].pass_is_found := pass_is_found
-            thread_passwords[i].password_file := NULL
-            thread_passwords[i].stat := stat
-            thread_passwords[i].thread_id := i
-            thread_passwords[i].thread_id_found_pass := thread_id_found_pass
-            thread_passwords[i].passwords := passwords
-            thread_passwords[i].zip_file_dir := zip_file_dir
+
+            thread_passwords.pass_is_found := pass_is_found
+            thread_passwords.password_file := NULL
+            thread_passwords.stat := stat
+            thread_passwords.thread_id := i
+            thread_passwords.thread_id_found_pass := thread_id_found_pass
+            thread_passwords.passwords := passwords
+            thread_passwords.zip_file_dir := zip_file_dir
 
             thread_passwords[i].start_index := i * amount_passwords_thread + min_val(i, mod_val(total_combinations, num_threads))
 
@@ -138,29 +139,21 @@ procedure thread_test_passwords(structure test_passwords)
       
           open_file(pass_test)
       
-         mutex lock
           IF (test_passwords.stat != ZIP_NOT_PROCESSED) THEN
               generate_more_passwords := false
-          mutex unlock
+
       
           password_counter := password_counter + 1
       
       IF (pass_test.pass_is_found) THEN
-          mutex lock
+
           thread_id_found_pass := test_passwords.thread_id
           test_passwords.password_file := string password
            test_passwords.pass_is_found := true
-          mutex unlock
-
-          
-
 
 procedure open_file (structure thread_pass test_pass)
-
-    mutex_lock
     declare zip_file_data := zip_open(test_info.zip_file_dir, 0, NULL)
-    mutex unlock
-    
+
     declare num_files := zip_get_num_entries(zip_file_data, 0)
 
     For i = 0 to num_files DO
@@ -174,7 +167,6 @@ procedure open_file (structure thread_pass test_pass)
 
             IF (char_count > 0) THEN
                 IF (strncmp(file_characters, file_content, file_stat.size) = 0) THEN
-                    mutex lock
                     test_info.pass_is_found := true
                     test_info.stat := ZIP_PROCESSED_SUCCESSFULLY
                     test_info.password_file := test.password
