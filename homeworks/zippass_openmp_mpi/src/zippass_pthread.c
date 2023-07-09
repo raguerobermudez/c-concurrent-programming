@@ -79,8 +79,6 @@ int main(int argc, char* argv[]) {
   }
   MPI_Bcast(&error_code, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  // Search for passwords
-
   if (rank == 0) {
     // Rank
     for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
@@ -92,16 +90,17 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // TODO: (YOU) Distribute
   if (rank == 0) {
     for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
       error_code = search_zip_passwords(number_threads, &process_data[i]);
     }
   }
 
-  // Exit distribution
+
+  MPI_Barrier(MPI_COMM_WORLD);  // Synchronize all processes
 
   if (rank == 0) {
+    // Print results in rank 0
     for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
       if (process_data[i].zip_file_pass) {
         printf("%s %s\n", process_data[i].zip_file_dir,
@@ -110,7 +109,9 @@ int main(int argc, char* argv[]) {
         printf("%s\n", process_data[i].zip_file_dir);
       }
     }
+  }
 
+  if (rank == 0) {
     for (uint64_t i = 0; i < txt_file.num_of_zip_files; i++) {
       if (txt_file.zip_files_directions[i]) {
         free(txt_file.zip_files_directions[i]);
