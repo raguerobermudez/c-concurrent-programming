@@ -9,16 +9,8 @@
 #### Partes del programa
 
 
-- [Tarea 03: zippass\_optimized](#tarea-03-zippass_optimized)
-  - [CI-0117 Programación Paralela y Concurrente](#ci-0117-programación-paralela-y-concurrente)
-  - [Estudiante:](#estudiante)
-      - [Partes del programa](#partes-del-programa)
-      - [Optimización zippass\_serial](#optimización-zippass_serial)
-      - [Optimización zippass\_pthread](#optimización-zippass_pthread)
-      - [Optimización zippass\_dynamic](#optimización-zippass_dynamic)
-      - [Comparación de optimizaciónes](#comparación-de-optimizaciónes)
-      - [Comparación de grados de concurrencia](#comparación-de-grados-de-concurrencia)
-      - [Análisis de resultados](#análisis-de-resultados)
+  - [Comparación de optimizaciónes](#comparación-de-optimizaciónes)
+  - [Análisis de resultados](#análisis-de-resultados)
 
   
 #### Comparación de optimizaciónes
