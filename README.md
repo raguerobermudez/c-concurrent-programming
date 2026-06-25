@@ -1,6 +1,5 @@
 # C Parallel and Concurrent Programming
 
-## CI-0117 Programación Paralela y Concurrente
 
 This repository contains a collection of exercises, assignments, and a project completed for the Concurrent and Parallel Programming (*Programación Paralela y Concurrente*) course at the University of Costa Rica.
 
